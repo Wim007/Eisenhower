@@ -18,6 +18,8 @@
       --muted:   #8899aa;
       --danger:  #f87171;
       --green:   #4ade80;
+      --yellow:  #fbbf24;
+      --purple:  #a78bfa;
     }
     html, body { height: 100%; }
     body {
@@ -395,6 +397,162 @@
     .log-tekst { font-size: 0.88rem; margin-bottom: 3px; }
     .log-time  { font-size: 0.76rem; color: var(--muted); }
 
+    /* ── PIPELINE PANEL ──────────────────────────── */
+    .pipeline-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .pipeline-stats-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .pipe-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      text-align: center;
+      min-width: 90px;
+    }
+    .pipe-stat-num { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+    .pipe-stat-lbl { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .kanban {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      flex: 1;
+      align-items: flex-start;
+    }
+    .kanban-col {
+      min-width: 220px;
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+    .kanban-col-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kanban-col-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .kanban-count {
+      font-size: 0.75rem;
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1px 7px;
+      color: var(--muted);
+    }
+    .kanban-cards {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 60px;
+    }
+    .lead-card {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 12px 13px;
+      cursor: pointer;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .lead-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(0,188,212,.2);
+    }
+    .lead-naam { font-size: 0.88rem; font-weight: 600; margin-bottom: 3px; }
+    .lead-bedrijf { font-size: 0.76rem; color: var(--muted); margin-bottom: 6px; }
+    .lead-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn-xs {
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      font-family: inherit;
+      border-radius: 5px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      transition: border-color .2s, color .2s;
+    }
+    .btn-xs:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-xs.sam { border-color: rgba(167,139,250,.4); color: var(--purple); }
+    .btn-xs.sam:hover { border-color: var(--purple); background: rgba(167,139,250,.1); }
+    .btn-xs.del:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* modal */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      width: 480px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h2 { font-size: 1rem; font-weight: 600; margin-bottom: 20px; }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-sec {
+      padding: 9px 16px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-sec:hover { border-color: var(--text); color: var(--text); }
+    .sam-result {
+      margin-top: 16px;
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      display: none;
+    }
+
     /* ── MOBILE NAV ──────────────────────────────── */
     .mobile-nav {
       display: none;
@@ -414,13 +572,13 @@
       flex-direction: column;
       align-items: center;
       gap: 3px;
-      padding: 6px 16px;
+      padding: 6px 12px;
       cursor: pointer;
       border: none;
       background: transparent;
       font-family: inherit;
       color: var(--muted);
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       transition: color .15s;
     }
     .mnav-item .mnav-icon { font-size: 1.3rem; }
@@ -467,6 +625,9 @@
       </button>
       <button class="nav-item" data-panel="leden">
         <span class="nav-icon">👥</span> Leden
+      </button>
+      <button class="nav-item" data-panel="pipeline">
+        <span class="nav-icon">🏗️</span> Pipeline
       </button>
       <button class="nav-item" data-panel="log">
         <span class="nav-icon">📊</span> Activiteitenlog
@@ -605,6 +766,16 @@
         </div>
       </div>
 
+      <!-- ── PIPELINE PANEL ── -->
+      <div class="panel" id="panel-pipeline">
+        <div class="pipeline-top">
+          <div class="section-title">Pipeline — B2B leads</div>
+          <button class="btn-primary" id="btnNieuweLeadOpen">+ Nieuwe lead</button>
+        </div>
+        <div class="pipeline-stats-row" id="pipelineStats"></div>
+        <div class="kanban" id="kanban"></div>
+      </div>
+
       <!-- ── LOG PANEL ── -->
       <div class="panel" id="panel-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
@@ -625,9 +796,73 @@
       <button class="mnav-item active" data-panel="chat"><span class="mnav-icon">💬</span>Chat</button>
       <button class="mnav-item" data-panel="taken"><span class="mnav-icon">📋</span>Taken</button>
       <button class="mnav-item" data-panel="leden"><span class="mnav-icon">👥</span>Leden</button>
+      <button class="mnav-item" data-panel="pipeline"><span class="mnav-icon">🏗️</span>Pipeline</button>
       <button class="mnav-item" data-panel="log"><span class="mnav-icon">📊</span>Log</button>
     </div>
   </nav>
+
+  <!-- MODAL: nieuwe / bewerk lead -->
+  <div class="modal-overlay" id="modalLead">
+    <div class="modal">
+      <h2 id="modalLeadTitle">Nieuwe lead</h2>
+      <input type="hidden" id="modalLeadId" value="" />
+      <div class="form-group">
+        <label>Naam *</label>
+        <input type="text" id="mlNaam" placeholder="Jan de Vries" />
+      </div>
+      <div class="form-group">
+        <label>Bedrijf</label>
+        <input type="text" id="mlBedrijf" placeholder="Thuiszorg Noord BV" />
+      </div>
+      <div class="form-group">
+        <label>Functie</label>
+        <input type="text" id="mlFunctie" placeholder="HR-directeur" />
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="mlEmail" placeholder="jan@thuiszorg.nl" />
+      </div>
+      <div class="form-group">
+        <label>Telefoon</label>
+        <input type="tel" id="mlTelefoon" placeholder="06-12345678" />
+      </div>
+      <div class="form-group" id="mlStageGroup" style="display:none">
+        <label>Stage</label>
+        <select id="mlStage">
+          <option value="nieuw">Nieuw</option>
+          <option value="contact">Contact gelegd</option>
+          <option value="gesprek">Gesprek gepland</option>
+          <option value="voorstel">Voorstel gestuurd</option>
+          <option value="gewonnen">Gewonnen 🎉</option>
+          <option value="verloren">Verloren</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notities</label>
+        <textarea id="mlNotities" rows="3" placeholder="Extra context voor Sam..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sec" id="modalLeadSluit">Annuleren</button>
+        <button class="btn-primary" id="modalLeadOpslaan">Opslaan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Sam-bericht -->
+  <div class="modal-overlay" id="modalSam">
+    <div class="modal">
+      <h2>Sam — LinkedIn outreach</h2>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:4px" id="samLeadNaam"></p>
+      <div class="sam-result" id="samResult"></div>
+      <div id="samLoading" style="color:var(--muted);font-size:0.88rem;margin-top:16px;display:none">
+        Sam is aan het schrijven...
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sec" id="modalSamSluit">Sluiten</button>
+        <button class="btn-primary" id="btnSamGenereer">Genereer bericht</button>
+      </div>
+    </div>
+  </div>
 
 <script>
 // ── Auth check ──────────────────────────────────────────────────────────────
@@ -642,6 +877,7 @@ function switchPanel(name) {
   document.querySelectorAll('.nav-item, .mnav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   document.querySelectorAll('[data-panel="' + name + '"]').forEach(b => b.classList.add('active'));
+  if (name === 'pipeline') loadPipeline();
 }
 document.querySelectorAll('[data-panel]').forEach(btn => {
   btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
@@ -806,6 +1042,192 @@ renderLog();
 
 document.getElementById('btnLogLeeg').addEventListener('click', () => {
   logs = []; saveLogs(); renderLog();
+});
+
+// ── Pipeline ─────────────────────────────────────────────────────────────────
+const STAGES = [
+  { key: 'nieuw',     label: 'Nieuw',             icon: '🆕' },
+  { key: 'contact',   label: 'Contact gelegd',     icon: '📩' },
+  { key: 'gesprek',   label: 'Gesprek gepland',    icon: '📞' },
+  { key: 'voorstel',  label: 'Voorstel gestuurd',  icon: '📄' },
+  { key: 'gewonnen',  label: 'Gewonnen',           icon: '🎉' },
+  { key: 'verloren',  label: 'Verloren',           icon: '❌' },
+];
+
+let allLeads = [];
+
+async function loadPipeline() {
+  try {
+    const [leads, stats] = await Promise.all([
+      fetch('/api/crm/leads').then(r => r.json()),
+      fetch('/api/crm/stats').then(r => r.json()),
+    ]);
+    allLeads = Array.isArray(leads) ? leads : [];
+    renderPipelineStats(stats);
+    renderKanban();
+  } catch {
+    document.getElementById('kanban').innerHTML = '<p style="color:var(--muted)">Kan pipeline niet laden.</p>';
+  }
+}
+
+function renderPipelineStats(stats) {
+  const row = document.getElementById('pipelineStats');
+  row.innerHTML = STAGES.map(s => `
+    <div class="pipe-stat">
+      <div class="pipe-stat-num">${stats[s.key] ?? 0}</div>
+      <div class="pipe-stat-lbl">${s.label}</div>
+    </div>
+  `).join('');
+}
+
+function renderKanban() {
+  const kanban = document.getElementById('kanban');
+  kanban.innerHTML = STAGES.map(s => {
+    const cards = allLeads.filter(l => l.stage === s.key);
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title">${s.icon} ${s.label}</div>
+          <span class="kanban-count">${cards.length}</span>
+        </div>
+        <div class="kanban-cards">
+          ${cards.length ? cards.map(l => `
+            <div class="lead-card" data-id="${l.id}">
+              <div class="lead-naam">${esc(l.naam)}</div>
+              <div class="lead-bedrijf">${esc(l.bedrijf || l.functie || '—')}</div>
+              <div class="lead-card-actions">
+                <button class="btn-xs" data-action="edit" data-id="${l.id}">✏️ Bewerk</button>
+                <button class="btn-xs sam" data-action="sam" data-id="${l.id}">✨ Sam</button>
+                <button class="btn-xs del" data-action="del" data-id="${l.id}">✕</button>
+              </div>
+            </div>
+          `).join('') : '<div style="color:var(--muted);font-size:0.8rem;padding:6px 4px">Geen leads</div>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  kanban.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = +btn.dataset.id;
+      if (btn.dataset.action === 'edit')  openEditLead(id);
+      if (btn.dataset.action === 'sam')   openSamModal(id);
+      if (btn.dataset.action === 'del')   deleteLead(id);
+    });
+  });
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// nieuwe lead modal
+document.getElementById('btnNieuweLeadOpen').addEventListener('click', () => {
+  document.getElementById('modalLeadTitle').textContent = 'Nieuwe lead';
+  document.getElementById('modalLeadId').value = '';
+  document.getElementById('mlNaam').value = '';
+  document.getElementById('mlBedrijf').value = '';
+  document.getElementById('mlFunctie').value = '';
+  document.getElementById('mlEmail').value = '';
+  document.getElementById('mlTelefoon').value = '';
+  document.getElementById('mlNotities').value = '';
+  document.getElementById('mlStageGroup').style.display = 'none';
+  document.getElementById('modalLead').classList.add('open');
+});
+
+function openEditLead(id) {
+  const l = allLeads.find(x => x.id === id);
+  if (!l) return;
+  document.getElementById('modalLeadTitle').textContent = 'Lead bewerken';
+  document.getElementById('modalLeadId').value = id;
+  document.getElementById('mlNaam').value = l.naam;
+  document.getElementById('mlBedrijf').value = l.bedrijf || '';
+  document.getElementById('mlFunctie').value = l.functie || '';
+  document.getElementById('mlEmail').value = l.email || '';
+  document.getElementById('mlTelefoon').value = l.telefoon || '';
+  document.getElementById('mlNotities').value = l.notities || '';
+  document.getElementById('mlStage').value = l.stage;
+  document.getElementById('mlStageGroup').style.display = 'block';
+  document.getElementById('modalLead').classList.add('open');
+}
+
+document.getElementById('modalLeadSluit').addEventListener('click', () => {
+  document.getElementById('modalLead').classList.remove('open');
+});
+
+document.getElementById('modalLeadOpslaan').addEventListener('click', async () => {
+  const naam = document.getElementById('mlNaam').value.trim();
+  if (!naam) { document.getElementById('mlNaam').focus(); return; }
+  const id = document.getElementById('modalLeadId').value;
+  const body = {
+    naam,
+    bedrijf:  document.getElementById('mlBedrijf').value.trim(),
+    functie:  document.getElementById('mlFunctie').value.trim(),
+    email:    document.getElementById('mlEmail').value.trim(),
+    telefoon: document.getElementById('mlTelefoon').value.trim(),
+    notities: document.getElementById('mlNotities').value.trim(),
+  };
+  if (id) body.stage = document.getElementById('mlStage').value;
+
+  try {
+    const res = await fetch(id ? `/api/crm/leads/${id}` : '/api/crm/leads', {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error();
+    document.getElementById('modalLead').classList.remove('open');
+    addLog('🏗️', `Lead ${id ? 'bijgewerkt' : 'aangemaakt'}: ${naam}`);
+    await loadPipeline();
+  } catch {
+    alert('Opslaan mislukt. Probeer opnieuw.');
+  }
+});
+
+async function deleteLead(id) {
+  const lead = allLeads.find(x => x.id === id);
+  if (!confirm(`Lead "${lead?.naam}" verwijderen?`)) return;
+  await fetch(`/api/crm/leads/${id}`, { method: 'DELETE' });
+  addLog('🗑️', `Lead verwijderd: ${lead?.naam}`);
+  await loadPipeline();
+}
+
+// Sam modal
+let samCurrentId = null;
+
+function openSamModal(id) {
+  const lead = allLeads.find(x => x.id === id);
+  samCurrentId = id;
+  document.getElementById('samLeadNaam').textContent =
+    `${lead?.naam || ''}${lead?.bedrijf ? ' — ' + lead.bedrijf : ''}`;
+  document.getElementById('samResult').style.display = 'none';
+  document.getElementById('samResult').textContent = '';
+  document.getElementById('samLoading').style.display = 'none';
+  document.getElementById('modalSam').classList.add('open');
+}
+
+document.getElementById('modalSamSluit').addEventListener('click', () => {
+  document.getElementById('modalSam').classList.remove('open');
+});
+
+document.getElementById('btnSamGenereer').addEventListener('click', async () => {
+  if (!samCurrentId) return;
+  document.getElementById('samLoading').style.display = 'block';
+  document.getElementById('samResult').style.display = 'none';
+  document.getElementById('btnSamGenereer').disabled = true;
+  try {
+    const res = await fetch(`/api/crm/leads/${samCurrentId}/sam`, { method: 'POST' });
+    const data = await res.json();
+    document.getElementById('samResult').textContent = data.bericht || 'Geen resultaat.';
+    document.getElementById('samResult').style.display = 'block';
+    addLog('✨', `Sam heeft outreach geschreven voor lead #${samCurrentId}`);
+  } catch {
+    document.getElementById('samResult').textContent = 'Genereren mislukt.';
+    document.getElementById('samResult').style.display = 'block';
+  }
+  document.getElementById('samLoading').style.display = 'none';
+  document.getElementById('btnSamGenereer').disabled = false;
 });
 </script>
 </body>

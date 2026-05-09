@@ -66,4 +66,28 @@ router.post('/larry', requireAuth, async (req, res) => {
   }
 });
 
+// ── CRM proxy routes ─────────────────────────────────────────────────────────
+
+async function crmProxy(req, res, path, method, body) {
+  const agentsUrl = process.env.AGENTS_API_URL || 'http://localhost:8000';
+  try {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const response = await fetch(`${agentsUrl}${path}`, opts);
+    const data = await response.json().catch(() => ({}));
+    res.status(response.status).json(data);
+  } catch (err) {
+    console.error('CRM proxy fout:', err.message);
+    res.status(500).json({ success: false, message: `CRM niet bereikbaar: ${err.message}` });
+  }
+}
+
+router.get('/crm/leads',            requireAuth, (req, res) => crmProxy(req, res, '/crm/leads', 'GET'));
+router.post('/crm/leads',           requireAuth, (req, res) => crmProxy(req, res, '/crm/leads', 'POST', req.body));
+router.get('/crm/leads/:id',        requireAuth, (req, res) => crmProxy(req, res, `/crm/leads/${req.params.id}`, 'GET'));
+router.put('/crm/leads/:id',        requireAuth, (req, res) => crmProxy(req, res, `/crm/leads/${req.params.id}`, 'PUT', req.body));
+router.delete('/crm/leads/:id',     requireAuth, (req, res) => crmProxy(req, res, `/crm/leads/${req.params.id}`, 'DELETE'));
+router.get('/crm/stats',            requireAuth, (req, res) => crmProxy(req, res, '/crm/stats', 'GET'));
+router.post('/crm/leads/:id/sam',   requireAuth, (req, res) => crmProxy(req, res, `/crm/leads/${req.params.id}/sam`, 'POST'));
+
 module.exports = router;
