@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inloggen — SamenOntzorgen Beheer</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #0f1923;
+      --card:   #1a2535;
+      --border: #263244;
+      --accent: #00BCD4;
+      --text:   #e2e8f0;
+      --muted:  #8899aa;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.4);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .avatar {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #1B4F72, var(--accent));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 1.6rem;
+    }
+    .logo-name { font-size: 1.4rem; font-weight: 700; }
+    .logo-name span { color: var(--accent); }
+    .logo-sub { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+    h1 { font-size: 1.3rem; font-weight: 600; text-align: center; margin-bottom: 6px; }
+    .sub { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+    label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--muted); margin-bottom: 8px; }
+    input[type="password"] {
+      width: 100%; padding: 13px 16px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-size: 1rem; font-family: inherit;
+      outline: none; transition: border-color .2s;
+    }
+    input[type="password"]:focus { border-color: var(--accent); }
+    .btn {
+      width: 100%; padding: 13px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 1rem; font-weight: 600; font-family: inherit;
+      cursor: pointer; margin-top: 18px;
+      transition: opacity .2s, transform .15s;
+    }
+    .btn:hover { opacity: .88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .error {
+      background: rgba(212,50,90,.12);
+      border: 1px solid rgba(212,50,90,.3);
+      color: #f87171; border-radius: 8px;
+      padding: 11px 14px; font-size: 0.875rem;
+      margin-top: 14px; display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="avatar">🌿</div>
+      <div class="logo-name">Samen<span>Ontzorgen</span></div>
+      <div class="logo-sub">Beheerportaal</div>
+    </div>
+    <h1>Welkom terug, Wim</h1>
+    <p class="sub">Voer je wachtwoord in om door te gaan</p>
+    <form id="form">
+      <label for="pw">Wachtwoord</label>
+      <input type="password" id="pw" placeholder="••••••••••••" autofocus autocomplete="current-password" />
+      <button type="submit" class="btn">Inloggen →</button>
+      <div class="error" id="err">Onjuist wachtwoord. Probeer het opnieuw.</div>
+    </form>
+  </div>
+  <script>
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pw = document.getElementById('pw');
+      const err = document.getElementById('err');
+      err.style.display = 'none';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ password: pw.value })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = '/dashboard';
+        } else {
+          err.style.display = 'block';
+          pw.value = '';
+          pw.focus();
+        }
+      } catch {
+        err.textContent = 'Verbindingsfout. Probeer opnieuw.';
+        err.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
