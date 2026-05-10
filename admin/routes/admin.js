@@ -37,7 +37,7 @@ router.post('/logout', (req, res) => {
   req.session.destroy(() => res.json({ success: true }));
 });
 
-// POST /api/larry — stuurt bericht door naar de echte Eisenhower agents API
+// POST /api/larry
 router.post('/larry', requireAuth, async (req, res) => {
   const { message, history = [] } = req.body;
   if (!message || !message.trim()) {
@@ -65,5 +65,46 @@ router.post('/larry', requireAuth, async (req, res) => {
     res.status(500).json({ success: false, message: `Kan agents niet bereiken: ${err.message}` });
   }
 });
+
+// ── CRM proxy ────────────────────────────────────────────────────────────────
+
+function agentsUrl() {
+  return process.env.AGENTS_API_URL || 'http://localhost:8000';
+}
+
+async function proxyNaarCrm(req, res, methode, pad, body) {
+  try {
+    const opts = { method: methode, headers: { 'Content-Type': 'application/json' } };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    const response = await fetch(`${agentsUrl()}${pad}`, opts);
+    if (response.status === 204) return res.status(204).end();
+    const data = await response.json().catch(() => ({}));
+    res.status(response.status).json(data);
+  } catch (err) {
+    console.error('CRM proxy fout:', err.message);
+    res.status(500).json({ success: false, message: `CRM niet bereikbaar: ${err.message}` });
+  }
+}
+
+router.get('/crm/stats',    requireAuth, (req, res) => proxyNaarCrm(req, res, 'GET', '/crm/stats'));
+router.get('/crm/pipeline', requireAuth, (req, res) => proxyNaarCrm(req, res, 'GET', '/crm/pipeline'));
+router.get('/crm/followups',requireAuth, (req, res) => proxyNaarCrm(req, res, 'GET', '/crm/followups'));
+
+router.get('/crm/leads', requireAuth, (req, res) => {
+  const qs = new URLSearchParams();
+  if (req.query.status) qs.set('status', req.query.status);
+  if (req.query.zoek)   qs.set('zoek',   req.query.zoek);
+  if (req.query.sector) qs.set('sector', req.query.sector);
+  const pad = `/crm/leads${qs.toString() ? '?' + qs.toString() : ''}`;
+  proxyNaarCrm(req, res, 'GET', pad);
+});
+
+router.post('/crm/leads',              requireAuth, (req, res) => proxyNaarCrm(req, res, 'POST',   '/crm/leads', req.body));
+router.get('/crm/leads/:id',           requireAuth, (req, res) => proxyNaarCrm(req, res, 'GET',    `/crm/leads/${req.params.id}`));
+router.put('/crm/leads/:id',           requireAuth, (req, res) => proxyNaarCrm(req, res, 'PUT',    `/crm/leads/${req.params.id}`, req.body));
+router.put('/crm/leads/:id/status',    requireAuth, (req, res) => proxyNaarCrm(req, res, 'PUT',    `/crm/leads/${req.params.id}/status`, req.body));
+router.delete('/crm/leads/:id',        requireAuth, (req, res) => proxyNaarCrm(req, res, 'DELETE', `/crm/leads/${req.params.id}`));
+router.get('/crm/leads/:id/berichten', requireAuth, (req, res) => proxyNaarCrm(req, res, 'GET',    `/crm/leads/${req.params.id}/berichten`));
+router.post('/crm/leads/:id/bericht',  requireAuth, (req, res) => proxyNaarCrm(req, res, 'POST',   `/crm/leads/${req.params.id}/bericht`, req.body));
 
 module.exports = router;
