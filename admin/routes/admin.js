@@ -117,6 +117,81 @@ router.post('/larry', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/kalender/genereer — genereer een maand LinkedIn posts
+router.post('/kalender/genereer', requireAuth, async (req, res) => {
+  const { project = 'SO', frequentie = 3, startDatum } = req.body;
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return res.status(500).json({ success: false, message: 'OPENAI_API_KEY ontbreekt.' });
+
+  const projectNamen = { SO: 'SamenOntzorgen', MA: 'Matti', AD: 'AI Doc' };
+  const projectContext = {
+    SO: `SamenOntzorgen is een coöperatief flex-platform voor de zorgsector. Tot 35% goedkoper dan uitzendbureaus. Juridisch compliant (geen Wet DBA risico). Doelgroep: HR-directeuren en bestuurders bij zorginstellingen. Archetype: Innocent — rustig, eerlijk, nooit salesachtig. Gebruik de 5fortyfive schrijfvolgorde: erken het probleem → gevolg van niets doen → gewenste situatie → kleine stap. Nooit harde CTA's als "plan een afspraak".`,
+    MA: `Matti is een AI-assistent voor preventieve mentale ondersteuning van middelbare scholieren. Doelgroep LinkedIn: schooldirecteuren, zorgcoördinatoren, beleidsmakers in het onderwijs. Toon: warm, normaliserend, geen therapietaal.`,
+    AD: `AI Doc is een AI-administratieassistent voor huisartsenpraktijken (transcriptie, SOAP-verslaglegging). Doelgroep: huisartsen, praktijkmanagers. Toon: professioneel, praktisch, gericht op tijdsbesparing.`
+  };
+
+  // Bereken data voor de komende maand
+  const start = startDatum ? new Date(startDatum) : new Date();
+  const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+  const postData = [];
+  const postDagen = frequentie === 2 ? [1, 4] : [1, 3, 5]; // ma+do of ma+wo+vr
+
+  for (let week = 0; week < 4; week++) {
+    for (const dag of postDagen) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + week * 7 + ((dag - start.getDay() + 7) % 7));
+      if (d >= start) {
+        postData.push(d.toISOString().slice(0, 10));
+      }
+    }
+  }
+  const aantalPosts = postData.slice(0, 12); // max 12 posts
+
+  const prompt = `Schrijf ${aantalPosts.length} LinkedIn posts voor ${projectNamen[project]}.
+
+Context: ${projectContext[project]}
+
+Regels:
+- Elke post is uniek, geen herhaling van hetzelfde thema
+- Begin NOOIT met "Ik" of een productpitch
+- Begin met een observatie, vraag, cijfer of herkenbare situatie
+- Max 200 woorden per post
+- Sluit af met een zachte vraag of uitnodiging, nooit met "neem contact op"
+- Schrijf in het Nederlands, persoonlijke toon van Wim
+
+Geef de posts terug als JSON array in dit formaat (niets anders, alleen JSON):
+[
+  {"datum": "${aantalPosts[0]}", "content": "volledige post tekst hier"},
+  {"datum": "${aantalPosts[1] || aantalPosts[0]}", "content": "..."},
+  ...
+]
+
+Datums in volgorde: ${aantalPosts.join(', ')}`;
+
+  try {
+    const client = new OpenAI({ apiKey });
+    const response = await client.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'Je bent een LinkedIn content expert. Geef altijd alleen geldige JSON terug, geen extra tekst.' },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 4000,
+      temperature: 0.8,
+    });
+
+    const raw = response.choices[0].message.content.trim();
+    const jsonStart = raw.indexOf('[');
+    const jsonEnd = raw.lastIndexOf(']') + 1;
+    const posts = JSON.parse(raw.slice(jsonStart, jsonEnd));
+    res.json({ success: true, posts, project });
+  } catch (err) {
+    console.error('Kalender genereer fout:', err.message);
+    res.status(500).json({ success: false, message: `Fout bij genereren: ${err.message}` });
+  }
+});
+
 // ── CRM proxy ────────────────────────────────────────────────────────────────
 
 function agentsUrl() {
