@@ -30,6 +30,10 @@ app.add_middleware(
 
 # ── Pydantic modellen ────────────────────────────────────────────────────────
 
+class QueryRequest(BaseModel):
+    query: str
+
+
 class ChatRequest(BaseModel):
     message: str
     history: list = []
@@ -77,11 +81,46 @@ class BerichtRequest(BaseModel):
     type: str = "eerste_benadering"
 
 
-# ── Bestaande endpoints ──────────────────────────────────────────────────────
+# ── Endpoints ────────────────────────────────────────────────────────────────
+
+@app.get("/")
+async def root():
+    return {
+        "service": "Eisenhower — SamenOntzorgen AI Command Center",
+        "description": "Multi-agent orchestration system with 37 AI agents across 4 projects.",
+        "projects": ["SamenOntzorgen (11 agents)", "Matti (11 agents)", "AI Doc (10 agents)", "Admin (5 agents)"],
+        "endpoints": {
+            "POST /query": "Send a query to Eisenhower and receive an agent response. Body: {\"query\": \"...\"}.",
+            "POST /chat": "Chat with conversation history support. Body: {\"message\": \"...\", \"history\": [...]}.",
+            "GET /health": "Health check — returns {\"status\": \"ok\"}.",
+            "GET /crm/leads": "List CRM leads with optional filters.",
+            "POST /crm/leads": "Create a new CRM lead.",
+            "GET /crm/pipeline": "Get full sales pipeline grouped by status.",
+            "GET /crm/stats": "Get CRM statistics and conversion metrics.",
+            "GET /crm/followups": "Get leads that are due for follow-up.",
+        },
+    }
+
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.post("/query")
+async def query_eisenhower(req: QueryRequest):
+    """Send a query directly to Eisenhower and receive the agent response."""
+    if not req.query.strip():
+        raise HTTPException(status_code=400, detail="Query mag niet leeg zijn.")
+
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY ontbreekt.")
+
+    try:
+        result = await vraag_eisenhower(req.query.strip())
+        return {"result": result}
+    except Exception as fout:
+        raise HTTPException(status_code=500, detail=str(fout))
 
 
 @app.post("/chat")
