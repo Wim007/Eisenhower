@@ -337,6 +337,8 @@
       .form-row { grid-template-columns: 1fr; }
       .chat-wrap { height: calc(100vh - 160px); }
       .msg { max-width: 95%; }
+      .form-row { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .contact-grid { grid-template-columns: 1fr; }
@@ -641,10 +643,240 @@
   </div>
 </div>
 
+  <main class="main">
+
+    <!-- CHAT -->
+    <div class="panel active" id="panel-chat">
+      <div class="chat-wrap">
+        <div class="chat-header">
+          <div class="chat-avatar">🤖</div>
+          <div class="chat-header-info"><h2>Larry — Orchestrator</h2><p>Geeft opdrachten aan het hele team</p></div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg larry">
+            <div class="msg-icon">🤖</div>
+            <div class="msg-bubble">Goeiedag Wim! Ik ben er klaar voor. Wat gaan we vandaag aanpakken?</div>
+          </div>
+        </div>
+        <div class="quick-prompts">
+          <button class="qp" data-q="Wat zou je deze week als eerste aanpakken?">🎯 Prioriteit deze week</button>
+          <button class="qp" data-q="Schrijf een LinkedIn post voor HR-directeuren">✍️ LinkedIn post</button>
+          <button class="qp" data-q="Zoek 5 kleine thuiszorgaanbieders in de regio Amsterdam">🔍 Prospects zoeken</button>
+          <button class="qp" data-q="Bereid me voor op een gesprek met Laurens van de VVT-instelling">📞 Gesprek voorbereiden</button>
+          <button class="qp" data-q="Wat is de status van onze outreach campagnes?">📊 Status update</button>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chatInput" placeholder="Typ een bericht aan Larry..." rows="1"></textarea>
+          <button class="btn-send" id="btnSend">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIPELINE -->
+    <div class="panel" id="panel-pipeline">
+      <div class="pipeline-top">
+        <div class="section-title" style="margin-bottom:0">Pipeline — B2B leads</div>
+        <div class="pipeline-acties">
+          <input class="pipeline-zoek" id="pipelineZoek" type="text" placeholder="🔍 Zoek lead..." />
+          <button class="btn-sec" id="btnPipelineRefresh">↺ Vernieuwen</button>
+          <button class="btn-primary" id="btnNieuweLeadOpen">+ Lead toevoegen</button>
+        </div>
+      </div>
+      <div class="pipe-stats-row" id="pipeStats"></div>
+      <div class="kanban" id="kanban"></div>
+    </div>
+
+    <!-- TAKEN -->
+    <div class="panel" id="panel-taken">
+      <div class="taken-grid">
+        <div class="card">
+          <h3>Nieuwe taak plannen</h3>
+          <div class="form-group"><label>Opdracht</label><textarea id="taakOpdracht" rows="3" placeholder="Bijv. Stuur wekelijks een LinkedIn post over VBAR-compliance"></textarea></div>
+          <div class="form-group"><label>Herhaling</label>
+            <select id="taakHerhaling">
+              <option value="eenmalig">Eenmalig</option>
+              <option value="dagelijks">Dagelijks</option>
+              <option value="wekelijks">Wekelijks</option>
+              <option value="tweewekelijks">Tweewekelijks</option>
+              <option value="maandelijks">Maandelijks</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Dag</label>
+            <select id="taakDag">
+              <option value="">— kies dag —</option>
+              <option>Maandag</option><option>Dinsdag</option><option>Woensdag</option><option>Donderdag</option><option>Vrijdag</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Tijdstip</label><input type="time" id="taakTijd" value="09:00" /></div>
+          <div class="form-group"><label>Agent</label>
+            <select id="taakAgent">
+              <option value="Larry">Larry (laat Larry beslissen)</option>
+              <option value="Vera">Vera — LinkedIn content</option>
+              <option value="Rosa">Rosa — Facebook content</option>
+              <option value="Finn">Finn — LinkedIn outreach</option>
+              <option value="Daan">Daan — Facebook outreach</option>
+              <option value="Sam">Sam — LinkedIn B2B outreach</option>
+              <option value="Bram">Bram — Huisartsen outreach</option>
+              <option value="Iris">Iris — Prospects zoeken</option>
+              <option value="Bax">Bax — Research</option>
+              <option value="Nova">Nova — Deal coaching</option>
+              <option value="Lena">Lena — Intake</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="btnTaakOpslaan">Taak opslaan</button>
+        </div>
+        <div class="card">
+          <h3>Geplande taken</h3>
+          <div class="taak-list" id="taakList"><div class="empty">Nog geen taken gepland.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEDEN -->
+    <div class="panel" id="panel-leden">
+      <div class="leden-stats">
+        <div class="stat-card"><div class="stat-num" id="statTotaal">0</div><div class="stat-label">Totaal leden</div></div>
+        <div class="stat-card"><div class="stat-num" id="statZzp">0</div><div class="stat-label">ZZP'ers</div></div>
+        <div class="stat-card"><div class="stat-num" id="statDeel">0</div><div class="stat-label">Deeltijdwerkers</div></div>
+      </div>
+      <div class="leden-table-wrap">
+        <table>
+          <thead><tr><th>Naam</th><th>Type</th><th>Aangemeld</th><th>Status</th></tr></thead>
+          <tbody id="ledenTbody">
+            <tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px">Leden worden zichtbaar zodra Lena intakes heeft verwerkt.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="panel" id="panel-log">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div class="section-title">Activiteitenlog</div>
+        <button class="btn-primary" id="btnLogLeeg" style="font-size:0.8rem;padding:7px 14px">Log wissen</button>
+      </div>
+      <div class="log-list" id="logList"><div class="empty">Nog geen activiteit geregistreerd.</div></div>
+    </div>
+
+  </main>
+</div>
+
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="mnav-item active" data-panel="chat"><span class="mnav-icon">💬</span>Chat</button>
+    <button class="mnav-item" data-panel="pipeline"><span class="mnav-icon">📊</span>Pipeline</button>
+    <button class="mnav-item" data-panel="taken"><span class="mnav-icon">📋</span>Taken</button>
+    <button class="mnav-item" data-panel="leden"><span class="mnav-icon">👥</span>Leden</button>
+    <button class="mnav-item" data-panel="log"><span class="mnav-icon">🗂️</span>Log</button>
+  </div>
+</nav>
+
+<!-- MODAL: lead toevoegen -->
+<div class="modal-overlay" id="modalNieuweLead">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Lead toevoegen</h2>
+      <button class="modal-sluit" data-sluit="modalNieuweLead">✕</button>
+    </div>
+    <div class="form-group"><label>Organisatie *</label><input type="text" id="nlOrg" placeholder="Thuiszorg Noord BV" /></div>
+    <div class="form-row">
+      <div class="form-group"><label>Sector</label><input type="text" id="nlSector" placeholder="VVT / Huisartsenzorg..." /></div>
+      <div class="form-group"><label>Locatie</label><input type="text" id="nlLocatie" placeholder="Amsterdam" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Contactpersoon</label><input type="text" id="nlContact" placeholder="Jan de Vries" /></div>
+      <div class="form-group"><label>Functie</label><input type="text" id="nlFunctie" placeholder="HR-directeur" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>E-mail</label><input type="email" id="nlEmail" placeholder="jan@thuiszorg.nl" /></div>
+      <div class="form-group"><label>Telefoon</label><input type="tel" id="nlTelefoon" placeholder="06-12345678" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Website</label><input type="text" id="nlWebsite" placeholder="https://..." /></div>
+      <div class="form-group"><label>Medewerkers</label><input type="number" id="nlMedewerkers" placeholder="50" /></div>
+    </div>
+    <div class="form-group"><label>Pijnpunten (komma-gescheiden)</label><input type="text" id="nlPijnpunten" placeholder="personeelstekort, administratiedruk, verzuim" /></div>
+    <div class="form-group"><label>Notities</label><textarea id="nlNotities" rows="2" placeholder="Extra context voor Sam..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-sec" data-sluit="modalNieuweLead">Annuleren</button>
+      <button class="btn-primary" id="btnNieuweLeadOpslaan">Lead toevoegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: lead detail -->
+<div class="modal-overlay" id="modalDetail">
+  <div class="modal" style="width:600px">
+    <div class="modal-header">
+      <h2>Lead detail</h2>
+      <button class="modal-sluit" data-sluit="modalDetail">✕</button>
+    </div>
+
+    <div class="detail-header">
+      <div class="detail-avatar" id="detailAvatar">🏢</div>
+      <div>
+        <div class="detail-org" id="detailOrg"></div>
+        <div class="detail-sub" id="detailSub"></div>
+      </div>
+    </div>
+
+    <!-- status wijzigen -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+      <select id="detailStatusSel" class="bericht-type-sel" style="max-width:220px">
+        <option value="nieuw">Nieuw</option>
+        <option value="benaderd">Benaderd</option>
+        <option value="reactie">Reactie ontvangen</option>
+        <option value="afspraak">Afspraak gepland</option>
+        <option value="voorstel">Voorstel gestuurd</option>
+        <option value="gewonnen">Gewonnen 🎉</option>
+        <option value="verloren">Verloren</option>
+        <option value="geparkeerd">Geparkeerd</option>
+      </select>
+      <button class="btn-primary" id="btnStatusOpslaan" style="padding:8px 14px;font-size:0.85rem">Status opslaan</button>
+    </div>
+
+    <div class="detail-grid" id="detailGrid"></div>
+
+    <div class="sectie-titel">Pijnpunten</div>
+    <div class="pijnpunt-list" id="detailPijnpunten"></div>
+
+    <div class="sectie-titel">Notities</div>
+    <div class="form-group" style="margin-bottom:0"><textarea id="detailNotities" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.85rem;font-family:inherit;padding:9px 12px;outline:none;resize:vertical"></textarea></div>
+
+    <div class="sectie-titel">Gespreksnotities</div>
+    <div class="form-group" style="margin-bottom:0"><textarea id="detailGesprek" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.85rem;font-family:inherit;padding:9px 12px;outline:none;resize:vertical"></textarea></div>
+    <button class="btn-sec" id="btnDetailOpslaan" style="margin-top:8px;font-size:0.82rem">Notities opslaan</button>
+
+    <div class="sectie-titel">Berichten via Sam</div>
+    <div class="bericht-row">
+      <select class="bericht-type-sel" id="berichtTypeSel">
+        <option value="eerste_benadering">Eerste benadering</option>
+        <option value="followup_1">Follow-up 1 (3 dagen)</option>
+        <option value="followup_2">Follow-up 2 (7 dagen)</option>
+        <option value="followup_3">Follow-up 3 (14 dagen)</option>
+        <option value="reactie_positief">Reactie positief</option>
+        <option value="no_show">No-show</option>
+        <option value="pilotvoorstel">Pilotvoorstel</option>
+      </select>
+      <button class="btn-primary" id="btnSamGenereer" style="padding:8px 14px;font-size:0.85rem;white-space:nowrap">✨ Genereer via Sam</button>
+    </div>
+    <div class="sam-loading" id="samLoading">Sam is aan het schrijven...</div>
+    <div class="sam-result" id="samResult"></div>
+
+    <div class="sectie-titel">Berichtengeschiedenis</div>
+    <div class="berichten-lijst" id="berichtenLijst"><div class="empty">Nog geen berichten.</div></div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between">
+      <button class="btn-danger" id="btnLeadVerwijder">Lead verwijderen</button>
+      <button class="btn-sec" data-sluit="modalDetail">Sluiten</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Auth ──────────────────────────────────────────────────────────────────────
 (async () => {
-  const r = await fetch('/api/check').then(r => r.json()).catch(() => ({ authenticated: false }));
+  const r = await fetch('/api/check').then(r=>r.json()).catch(()=>({authenticated:false}));
   if (!r.authenticated) window.location.href = '/';
 })();
 
@@ -1015,7 +1247,6 @@ function renderTaken() {
   );
 }
 renderTaken();
-
 document.getElementById('btnTaakOpslaan').addEventListener('click', () => {
   const opdracht = document.getElementById('taakOpdracht').value.trim();
   if (!opdracht) return;

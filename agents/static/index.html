@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eisenhower Matrix</title>
+  <style>
+    /* ── Reset & variabelen ────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1f2937;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --accent:    #58a6ff;
+
+      --q1: #f85149;   /* urgent + belangrijk  → rood  */
+      --q2: #3fb950;   /* !urgent + belangrijk → groen */
+      --q3: #d29922;   /* urgent + !belangrijk → geel  */
+      --q4: #6e7681;   /* !urgent + !belangrijk→ grijs */
+
+      --q1-bg: rgba(248,81,73,.08);
+      --q2-bg: rgba(63,185,80,.08);
+      --q3-bg: rgba(210,153,34,.08);
+      --q4-bg: rgba(110,118,129,.08);
+
+      --radius: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,.4);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* ── Layout wrapper ────────────────────────────────────── */
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    /* ── Header ────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .brand h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: .3rem .85rem;
+      font-size: .8rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .stat-pill strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ── Taak-invoer ───────────────────────────────────────── */
+    .add-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--shadow);
+    }
+
+    .add-card-title {
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: .75rem;
+    }
+
+    .add-form {
+      display: flex;
+      gap: .6rem;
+      flex-wrap: wrap;
+    }
+
+    .add-form input[type="text"] {
+      flex: 1 1 260px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: .55rem .85rem;
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    .add-form input[type="text"]::placeholder { color: var(--muted); }
+    .add-form input[type="text"]:focus { border-color: var(--accent); }
+
+    .add-form select {
+      flex: 0 0 auto;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: .55rem .75rem;
+      font-size: .9rem;
+      outline: none;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+
+    .add-form select:focus { border-color: var(--accent); }
+
+    .btn-add {
+      flex: 0 0 auto;
+      background: var(--accent);
+      color: #0d1117;
+      border: none;
+      border-radius: 6px;
+      padding: .55rem 1.2rem;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+
+    .btn-add:hover  { opacity: .88; }
+    .btn-add:active { transform: scale(.97); }
+
+    /* ── As-labels ─────────────────────────────────────────── */
+    .matrix-wrapper {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      grid-template-rows: 28px 1fr;
+      gap: 0;
+      flex: 1;
+    }
+
+    .axis-corner { /* lege cel linksboven */ }
+
+    .axis-x {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+      align-items: center;
+      padding: 0 0 6px;
+    }
+
+    .axis-y {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: .75rem;
+      align-items: center;
+      padding-right: 6px;
+    }
+
+    .axis-label {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .axis-y .axis-label {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      text-align: center;
+    }
+
+    /* ── Matrix grid ───────────────────────────────────────── */
+    .matrix {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: .75rem;
+    }
+
+    /* ── Kwadrant card ─────────────────────────────────────── */
+    .quadrant {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      min-height: 260px;
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+
+    .quadrant.drag-over { border-color: var(--accent); }
+
+    .q-header {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      padding: .75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .q-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .q-meta { flex: 1; }
+
+    .q-title {
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    .q-subtitle {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .q-count {
+      font-size: .75rem;
+      color: var(--muted);
+      background: var(--surface2);
+      border-radius: 20px;
+      padding: .15rem .5rem;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    /* kwadrant kleuren */
+    .q1 { background: var(--q1-bg); }
+    .q1 .q-header { border-bottom-color: rgba(248,81,73,.2); }
+    .q1 .q-dot    { background: var(--q1); }
+    .q1 .q-title  { color: var(--q1); }
+
+    .q2 .q-dot    { background: var(--q2); }
+    .q2 .q-title  { color: var(--q2); }
+
+    .q3 .q-dot    { background: var(--q3); }
+    .q3 .q-title  { color: var(--q3); }
+
+    .q4 .q-dot    { background: var(--q4); }
+    .q4 .q-title  { color: var(--q4); }
+
+    /* ── Takenlijst ────────────────────────────────────────── */
+    .task-list {
+      flex: 1;
+      padding: .5rem .75rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+
+    .task-empty {
+      color: var(--muted);
+      font-size: .82rem;
+      text-align: center;
+      padding: 1.5rem 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Taak item ─────────────────────────────────────────── */
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--surface2);
+      border: 1px solid transparent;
+      border-radius: 7px;
+      padding: .45rem .6rem;
+      cursor: default;
+      transition: border-color .15s, opacity .2s;
+      position: relative;
+    }
+
+    .task-item:hover { border-color: var(--border); }
+    .task-item.done  { opacity: .6; }
+
+    /* checkbox */
+    .task-check {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+      background: transparent;
+      transition: background .15s, border-color .15s;
+      position: relative;
+    }
+
+    .task-check:checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .task-check:checked::after {
+      content: '';
+      position: absolute;
+      left: 3px; top: 0px;
+      width: 5px; height: 9px;
+      border: 2px solid #0d1117;
+      border-top: none; border-left: none;
+      transform: rotate(45deg);
+    }
+
+    .task-title {
+      flex: 1;
+      font-size: .88rem;
+      word-break: break-word;
+    }
+
+    .task-item.done .task-title {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    /* move + delete — verborgen tot hover */
+    .task-actions {
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+      opacity: 0;
+      transition: opacity .15s;
+      flex-shrink: 0;
+    }
+
+    .task-item:hover .task-actions { opacity: 1; }
+
+    .task-move {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--muted);
+      font-size: .75rem;
+      padding: .2rem .4rem;
+      cursor: pointer;
+      outline: none;
+      transition: border-color .15s, color .15s;
+    }
+
+    .task-move:hover { border-color: var(--accent); color: var(--text); }
+
+    .task-del {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: .1rem .3rem;
+      border-radius: 4px;
+      transition: color .15s, background .15s;
+    }
+
+    .task-del:hover { color: var(--q1); background: var(--q1-bg); }
+
+    /* ── Loading / toast ───────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 1.75rem;
+      right: 1.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: .85rem 1.25rem;
+      font-size: .92rem;
+      font-weight: 500;
+      color: var(--text);
+      box-shadow: 0 8px 32px rgba(0,0,0,.6);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .25s, transform .25s;
+      pointer-events: none;
+      z-index: 100;
+      min-width: 220px;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { border-left-color: var(--q1); color: var(--q1); }
+    .toast.success { border-left-color: var(--q2); }
+
+    /* ── Responsive ────────────────────────────────────────── */
+    @media (max-width: 680px) {
+      .matrix-wrapper {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+
+      .axis-corner, .axis-y { display: none; }
+
+      .matrix-wrapper {
+        display: block;
+      }
+
+      .matrix {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, auto);
+      }
+
+      .quadrant { min-height: 180px; }
+
+      .axis-x { display: none; }
+    }
+
+    /* ── Animatie nieuwe taak ──────────────────────────────── */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes highlight {
+      0%   { box-shadow: 0 0 0 3px var(--accent); border-color: var(--accent); }
+      70%  { box-shadow: 0 0 0 3px var(--accent); border-color: var(--accent); }
+      100% { box-shadow: none; border-color: transparent; }
+    }
+
+    .task-item.new {
+      animation: slideIn .25s ease, highlight 1.8s ease 0.1s;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <h1>Eisenhower Matrix</h1>
+      <p>Prioriteer wat er echt toe doet</p>
+    </div>
+    <div class="stats-bar" id="statsBar">
+      <span class="stat-pill"><strong id="statTotal">–</strong> taken</span>
+      <span class="stat-pill"><strong id="statOpen">–</strong> open</span>
+      <span class="stat-pill"><strong id="statDone">–</strong> afgerond</span>
+    </div>
+  </header>
+
+  <!-- Taak toevoegen -->
+  <div class="add-card">
+    <div class="add-card-title">Nieuwe taak</div>
+    <form class="add-form" id="addForm">
+      <input
+        type="text"
+        id="newTitle"
+        placeholder="Wat moet er gedaan worden?"
+        autocomplete="off"
+        required
+        maxlength="200"
+      />
+      <select id="newQuadrant">
+        <option value="1">🔴 Urgent + Belangrijk</option>
+        <option value="2">🟢 Niet Urgent + Belangrijk</option>
+        <option value="3">🟡 Urgent + Niet Belangrijk</option>
+        <option value="4">⚫ Niet Urgent + Niet Belangrijk</option>
+      </select>
+      <button type="submit" class="btn-add">+ Toevoegen</button>
+    </form>
+  </div>
+
+  <!-- Matrix -->
+  <div class="matrix-wrapper">
+    <div class="axis-corner"></div>
+    <div class="axis-x">
+      <div class="axis-label">Urgent</div>
+      <div class="axis-label">Niet Urgent</div>
+    </div>
+    <div class="axis-y">
+      <div class="axis-label">Belangrijk</div>
+      <div class="axis-label">Niet Belangrijk</div>
+    </div>
+    <div class="matrix">
+
+      <!-- Q1 -->
+      <div class="quadrant q1" data-q="1" id="q1">
+        <div class="q-header">
+          <div class="q-dot"></div>
+          <div class="q-meta">
+            <div class="q-title">Do First</div>
+            <div class="q-subtitle">Urgent &amp; Belangrijk</div>
+          </div>
+          <div class="q-count" id="cnt1">0</div>
+        </div>
+        <div class="task-list" id="list1"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quadrant q2" data-q="2" id="q2">
+        <div class="q-header">
+          <div class="q-dot"></div>
+          <div class="q-meta">
+            <div class="q-title">Schedule</div>
+            <div class="q-subtitle">Niet Urgent &amp; Belangrijk</div>
+          </div>
+          <div class="q-count" id="cnt2">0</div>
+        </div>
+        <div class="task-list" id="list2"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quadrant q3" data-q="3" id="q3">
+        <div class="q-header">
+          <div class="q-dot"></div>
+          <div class="q-meta">
+            <div class="q-title">Delegate</div>
+            <div class="q-subtitle">Urgent &amp; Niet Belangrijk</div>
+          </div>
+          <div class="q-count" id="cnt3">0</div>
+        </div>
+        <div class="task-list" id="list3"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quadrant q4" data-q="4" id="q4">
+        <div class="q-header">
+          <div class="q-dot"></div>
+          <div class="q-meta">
+            <div class="q-title">Eliminate</div>
+            <div class="q-subtitle">Niet Urgent &amp; Niet Belangrijk</div>
+          </div>
+          <div class="q-count" id="cnt4">0</div>
+        </div>
+        <div class="task-list" id="list4"></div>
+      </div>
+
+    </div><!-- .matrix -->
+  </div><!-- .matrix-wrapper -->
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+  'use strict';
+
+  // ── API helpers ─────────────────────────────────────────────────────────────
+
+  const api = {
+    async get(path) {
+      const r = await fetch(path);
+      if (!r.ok) throw new Error(await r.text());
+      return r.json();
+    },
+    async post(path, body) {
+      const r = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) throw new Error(await r.text());
+      return r.json();
+    },
+    async put(path, body) {
+      const r = await fetch(path, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) throw new Error(await r.text());
+      return r.json();
+    },
+    async del(path) {
+      const r = await fetch(path, { method: 'DELETE' });
+      if (!r.ok && r.status !== 204) throw new Error(await r.text());
+    },
+  };
+
+  // ── Toast ───────────────────────────────────────────────────────────────────
+
+  let toastTimer;
+  function toast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show ' + (type === 'error' ? 'error' : 'success');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = 'toast'; }, 4000);
+  }
+
+  // ── State ───────────────────────────────────────────────────────────────────
+
+  let tasks = [];  // flat array, gefilterd per kwadrant bij render
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+
+  const MOVE_OPTIONS = {
+    1: ['2', '3', '4'],
+    2: ['1', '3', '4'],
+    3: ['1', '2', '4'],
+    4: ['1', '2', '3'],
+  };
+
+  const Q_LABELS = {
+    1: '🔴 Do First',
+    2: '🟢 Schedule',
+    3: '🟡 Delegate',
+    4: '⚫ Eliminate',
+  };
+
+  function renderAll() {
+    for (let q = 1; q <= 4; q++) {
+      const list = document.getElementById('list' + q);
+      const cnt  = document.getElementById('cnt' + q);
+      const qTasks = tasks.filter(t => t.quadrant === q);
+
+      cnt.textContent = qTasks.length;
+
+      if (qTasks.length === 0) {
+        list.innerHTML = '<div class="task-empty">Geen taken</div>';
+        continue;
+      }
+
+      list.innerHTML = '';
+      qTasks.forEach(t => list.appendChild(makeTaskEl(t)));
+    }
+  }
+
+  function updateStats() {
+    const total = tasks.length;
+    const done  = tasks.filter(t => t.completed).length;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statOpen').textContent  = total - done;
+    document.getElementById('statDone').textContent  = done;
+  }
+
+  function makeTaskEl(task) {
+    const el = document.createElement('div');
+    el.className = 'task-item' + (task.completed ? ' done' : '');
+    el.dataset.id = task.id;
+
+    // checkbox
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'task-check';
+    cb.checked = task.completed;
+    cb.addEventListener('change', () => toggleTask(task.id, cb.checked));
+
+    // title
+    const title = document.createElement('span');
+    title.className = 'task-title';
+    title.textContent = task.title;
+
+    // acties
+    const actions = document.createElement('div');
+    actions.className = 'task-actions';
+
+    // verplaats select
+    const moveOpts = MOVE_OPTIONS[task.quadrant];
+    const sel = document.createElement('select');
+    sel.className = 'task-move';
+    sel.title = 'Verplaats naar…';
+    sel.innerHTML = '<option value="">↗ Verplaats</option>' +
+      moveOpts.map(v => `<option value="${v}">${Q_LABELS[v]}</option>`).join('');
+    sel.addEventListener('change', () => {
+      if (sel.value) moveTask(task.id, parseInt(sel.value));
+    });
+
+    // verwijder
+    const del = document.createElement('button');
+    del.className = 'task-del';
+    del.title = 'Verwijder taak';
+    del.textContent = '×';
+    del.addEventListener('click', () => deleteTask(task.id));
+
+    actions.appendChild(sel);
+    actions.appendChild(del);
+
+    el.appendChild(cb);
+    el.appendChild(title);
+    el.appendChild(actions);
+
+    return el;
+  }
+
+  // ── Laden ───────────────────────────────────────────────────────────────────
+
+  async function loadTasks() {
+    try {
+      tasks = await api.get('/tasks');
+      renderAll();
+      updateStats();
+    } catch (e) {
+      toast('Laden mislukt: ' + e.message, 'error');
+    }
+  }
+
+  // ── CRUD ────────────────────────────────────────────────────────────────────
+
+  async function addTask(title, quadrant) {
+    try {
+      const t = await api.post('/tasks', { title, quadrant });
+      tasks.unshift(t);
+      renderAll();
+      updateStats();
+
+      // animeer nieuwe taak
+      const el = document.querySelector(`[data-id="${t.id}"]`);
+      if (el) el.classList.add('new');
+
+      // Scroll kwadrant in beeld
+      const qEl = document.getElementById('q' + t.quadrant);
+      if (qEl) qEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      toast('✓ Taak toegevoegd aan ' + Q_LABELS[t.quadrant].replace(/^.{2}/, '').trim());
+    } catch (e) {
+      toast('Toevoegen mislukt: ' + e.message, 'error');
+    }
+  }
+
+  async function toggleTask(id, completed) {
+    try {
+      const updated = await api.put(`/tasks/${id}`, { completed });
+      const idx = tasks.findIndex(t => t.id === id);
+      if (idx !== -1) tasks[idx] = updated;
+      renderAll();
+      updateStats();
+    } catch (e) {
+      toast('Bijwerken mislukt.', 'error');
+      renderAll(); // herstel UI
+    }
+  }
+
+  async function moveTask(id, quadrant) {
+    try {
+      const updated = await api.put(`/tasks/${id}`, { quadrant });
+      const idx = tasks.findIndex(t => t.id === id);
+      if (idx !== -1) tasks[idx] = updated;
+      renderAll();
+      updateStats();
+      toast('↗ Verplaatst naar ' + Q_LABELS[quadrant].replace(/^.{2}/, '').trim());
+    } catch (e) {
+      toast('Verplaatsen mislukt.', 'error');
+    }
+  }
+
+  async function deleteTask(id) {
+    try {
+      await api.del(`/tasks/${id}`);
+      tasks = tasks.filter(t => t.id !== id);
+      renderAll();
+      updateStats();
+      toast('🗑 Taak verwijderd.');
+    } catch (e) {
+      toast('Verwijderen mislukt.', 'error');
+    }
+  }
+
+  // ── Formulier ───────────────────────────────────────────────────────────────
+
+  document.getElementById('addForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const title    = document.getElementById('newTitle').value.trim();
+    const quadrant = parseInt(document.getElementById('newQuadrant').value);
+    if (!title) return;
+    addTask(title, quadrant);
+    document.getElementById('newTitle').value = '';
+    document.getElementById('newTitle').focus();
+  });
+
+  // ── Start ───────────────────────────────────────────────────────────────────
+
+  loadTasks();
+</script>
+</body>
+</html>
