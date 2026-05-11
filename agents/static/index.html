@@ -316,7 +316,7 @@
     }
 
     .task-item:hover { border-color: var(--border); }
-    .task-item.done  { opacity: .45; }
+    .task-item.done  { opacity: .6; }
 
     /* checkbox */
     .task-check {
@@ -401,24 +401,28 @@
     /* ── Loading / toast ───────────────────────────────────── */
     .toast {
       position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
+      bottom: 1.75rem;
+      right: 1.75rem;
       background: var(--surface);
       border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
       border-radius: 8px;
-      padding: .7rem 1.1rem;
-      font-size: .85rem;
+      padding: .85rem 1.25rem;
+      font-size: .92rem;
+      font-weight: 500;
       color: var(--text);
-      box-shadow: var(--shadow);
+      box-shadow: 0 8px 32px rgba(0,0,0,.6);
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(12px);
       transition: opacity .25s, transform .25s;
       pointer-events: none;
       z-index: 100;
+      min-width: 220px;
     }
 
     .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.error { border-color: var(--q1); color: var(--q1); }
+    .toast.error { border-left-color: var(--q1); color: var(--q1); }
+    .toast.success { border-left-color: var(--q2); }
 
     /* ── Responsive ────────────────────────────────────────── */
     @media (max-width: 680px) {
@@ -445,11 +449,19 @@
 
     /* ── Animatie nieuwe taak ──────────────────────────────── */
     @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-6px); }
+      from { opacity: 0; transform: translateY(-8px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .task-item.new { animation: slideIn .2s ease; }
+    @keyframes highlight {
+      0%   { box-shadow: 0 0 0 3px var(--accent); border-color: var(--accent); }
+      70%  { box-shadow: 0 0 0 3px var(--accent); border-color: var(--accent); }
+      100% { box-shadow: none; border-color: transparent; }
+    }
+
+    .task-item.new {
+      animation: slideIn .25s ease, highlight 1.8s ease 0.1s;
+    }
   </style>
 </head>
 <body>
@@ -600,12 +612,12 @@
   // ── Toast ───────────────────────────────────────────────────────────────────
 
   let toastTimer;
-  function toast(msg, isError = false) {
+  function toast(msg, type = 'success') {
     const el = document.getElementById('toast');
     el.textContent = msg;
-    el.className = 'toast show' + (isError ? ' error' : '');
+    el.className = 'toast show ' + (type === 'error' ? 'error' : 'success');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { el.className = 'toast'; }, 2400);
+    toastTimer = setTimeout(() => { el.className = 'toast'; }, 4000);
   }
 
   // ── State ───────────────────────────────────────────────────────────────────
@@ -711,7 +723,7 @@
       renderAll();
       updateStats();
     } catch (e) {
-      toast('Laden mislukt: ' + e.message, true);
+      toast('Laden mislukt: ' + e.message, 'error');
     }
   }
 
@@ -728,9 +740,13 @@
       const el = document.querySelector(`[data-id="${t.id}"]`);
       if (el) el.classList.add('new');
 
-      toast('Taak toegevoegd.');
+      // Scroll kwadrant in beeld
+      const qEl = document.getElementById('q' + t.quadrant);
+      if (qEl) qEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      toast('✓ Taak toegevoegd aan ' + Q_LABELS[t.quadrant].replace(/^.{2}/, '').trim());
     } catch (e) {
-      toast('Toevoegen mislukt: ' + e.message, true);
+      toast('Toevoegen mislukt: ' + e.message, 'error');
     }
   }
 
@@ -742,7 +758,7 @@
       renderAll();
       updateStats();
     } catch (e) {
-      toast('Bijwerken mislukt.', true);
+      toast('Bijwerken mislukt.', 'error');
       renderAll(); // herstel UI
     }
   }
@@ -754,9 +770,9 @@
       if (idx !== -1) tasks[idx] = updated;
       renderAll();
       updateStats();
-      toast('Taak verplaatst naar ' + Q_LABELS[quadrant].replace(/^.{2}/, '').trim() + '.');
+      toast('↗ Verplaatst naar ' + Q_LABELS[quadrant].replace(/^.{2}/, '').trim());
     } catch (e) {
-      toast('Verplaatsen mislukt.', true);
+      toast('Verplaatsen mislukt.', 'error');
     }
   }
 
@@ -766,9 +782,9 @@
       tasks = tasks.filter(t => t.id !== id);
       renderAll();
       updateStats();
-      toast('Taak verwijderd.');
+      toast('🗑 Taak verwijderd.');
     } catch (e) {
-      toast('Verwijderen mislukt.', true);
+      toast('Verwijderen mislukt.', 'error');
     }
   }
 
