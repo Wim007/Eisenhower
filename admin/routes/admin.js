@@ -117,54 +117,64 @@ router.post('/larry', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/kalender/genereer — genereer een maand LinkedIn posts
+// POST /api/kalender/genereer — genereer een maand social media posts
 router.post('/kalender/genereer', requireAuth, async (req, res) => {
-  const { project = 'SO', frequentie = 3, startDatum } = req.body;
+  const { project = 'SO', frequentie = 3, startDatum, kanaal = 'linkedin' } = req.body;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(500).json({ success: false, message: 'OPENAI_API_KEY ontbreekt.' });
 
   const projectNamen = { SO: 'SamenOntzorgen', MA: 'Matti', AD: 'AI Doc' };
-  const projectContext = {
-    SO: `SamenOntzorgen is een coöperatief flex-platform voor de zorgsector. Tot 35% goedkoper dan uitzendbureaus. Juridisch compliant (geen Wet DBA risico). Doelgroep: HR-directeuren en bestuurders bij zorginstellingen. Archetype: Innocent — rustig, eerlijk, nooit salesachtig. Gebruik de 5fortyfive schrijfvolgorde: erken het probleem → gevolg van niets doen → gewenste situatie → kleine stap. Nooit harde CTA's als "plan een afspraak".`,
-    MA: `Matti is een AI-assistent voor preventieve mentale ondersteuning van middelbare scholieren. Doelgroep LinkedIn: schooldirecteuren, zorgcoördinatoren, beleidsmakers in het onderwijs. Toon: warm, normaliserend, geen therapietaal.`,
-    AD: `AI Doc is een AI-administratieassistent voor huisartsenpraktijken (transcriptie, SOAP-verslaglegging). Doelgroep: huisartsen, praktijkmanagers. Toon: professioneel, praktisch, gericht op tijdsbesparing.`
+
+  const kanaalContext = {
+    linkedin: {
+      SO: `Doelgroep: HR-directeuren en bestuurders bij zorginstellingen. Platform: LinkedIn. Toon: professioneel, Innocent archetype — rustig, eerlijk, nooit salesachtig. Gebruik 5fortyfive schrijfvolgorde: erken het probleem → gevolg van niets doen → gewenste situatie → kleine stap. Max 200 woorden. Sluit af met een zachte vraag, nooit "neem contact op".`,
+      MA: `Doelgroep: schooldirecteuren, zorgcoördinatoren, beleidsmakers in het onderwijs. Platform: LinkedIn. Toon: warm, normaliserend, geen therapietaal. Max 200 woorden.`,
+      AD: `Doelgroep: huisartsen en praktijkmanagers. Platform: LinkedIn. Toon: medisch-professioneel, praktisch, gericht op tijdsbesparing. Max 200 woorden.`
+    },
+    facebook: {
+      SO: `Doelgroep: ZZP'ers in de zorg en deeltijdwerkers (verpleegkundigen, verzorgenden). Platform: Facebook. Agent: Rosa. Toon: direct, toegankelijk, herkenbaar voor de werkvloer — geen zakelijk jargon. Begin met een herkenbare situatie uit het dagelijks werk als ZZP'er of deeltijdwerker in de zorg. Max 120 woorden. Eindig met een open vraag die herkenning oproept.`,
+      MA: `Doelgroep: ouders van middelbare scholieren. Platform: Facebook. Toon: warm, betrokken, begripvol voor zorgende ouder. Max 120 woorden.`,
+      AD: `Doelgroep: huisartsen en praktijkmedewerkers in besloten Facebook-groepen. Platform: Facebook. Toon: collegiaal, praktisch, herkenbaar vanuit de spreekkamer. Max 120 woorden.`
+    },
+    instagram: {
+      SO: `Doelgroep: jonge zorgprofessionals en ZZP'ers (20-35 jaar). Platform: Instagram. Toon: visueel, inspirerend, energiek maar eerlijk. Max 80 woorden + sluit af met 5 relevante hashtags op een nieuwe regel (bijv. #zorgzzp #flexzorg #samenontzorgen).`,
+      MA: `Doelgroep: middelbare scholieren (12-21 jaar) en betrokken ouders. Platform: Instagram. Agent: Josh. Toon: authentiek, peer-to-peer, normaliserend — geen therapietaal, geen productpitch. Max 80 woorden + 5 hashtags op een nieuwe regel.`,
+      AD: `Doelgroep: jonge huisartsen en HAIO's. Platform: Instagram. Toon: herkenbaar vanuit de praktijk, luchtig maar informatief. Max 80 woorden + 5 hashtags op een nieuwe regel.`
+    }
   };
+
+  const kanaalNamen = { linkedin: 'LinkedIn', facebook: 'Facebook', instagram: 'Instagram' };
+  const context = (kanaalContext[kanaal] || kanaalContext.linkedin)[project] || kanaalContext.linkedin.SO;
 
   // Bereken data voor de komende maand
   const start = startDatum ? new Date(startDatum) : new Date();
-  const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
-  const postData = [];
   const postDagen = frequentie === 2 ? [1, 4] : [1, 3, 5]; // ma+do of ma+wo+vr
+  const postData = [];
 
   for (let week = 0; week < 4; week++) {
     for (const dag of postDagen) {
       const d = new Date(start);
       d.setDate(start.getDate() + week * 7 + ((dag - start.getDay() + 7) % 7));
-      if (d >= start) {
-        postData.push(d.toISOString().slice(0, 10));
-      }
+      if (d >= start) postData.push(d.toISOString().slice(0, 10));
     }
   }
-  const aantalPosts = postData.slice(0, 12); // max 12 posts
+  const aantalPosts = postData.slice(0, 12);
 
-  const prompt = `Schrijf ${aantalPosts.length} LinkedIn posts voor ${projectNamen[project]}.
+  const prompt = `Schrijf ${aantalPosts.length} ${kanaalNamen[kanaal]} posts voor ${projectNamen[project]}.
 
-Context: ${projectContext[project]}
+Context: ${context}
 
 Regels:
 - Elke post is uniek, geen herhaling van hetzelfde thema
 - Begin NOOIT met "Ik" of een productpitch
 - Begin met een observatie, vraag, cijfer of herkenbare situatie
-- Max 200 woorden per post
-- Sluit af met een zachte vraag of uitnodiging, nooit met "neem contact op"
 - Schrijf in het Nederlands, persoonlijke toon van Wim
 
 Geef de posts terug als JSON array in dit formaat (niets anders, alleen JSON):
 [
   {"datum": "${aantalPosts[0]}", "content": "volledige post tekst hier"},
-  {"datum": "${aantalPosts[1] || aantalPosts[0]}", "content": "..."},
-  ...
+  {"datum": "${aantalPosts[1] || aantalPosts[0]}", "content": "..."}
 ]
 
 Datums in volgorde: ${aantalPosts.join(', ')}`;
@@ -174,7 +184,7 @@ Datums in volgorde: ${aantalPosts.join(', ')}`;
     const response = await client.chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: 'Je bent een LinkedIn content expert. Geef altijd alleen geldige JSON terug, geen extra tekst.' },
+        { role: 'system', content: `Je bent een social media content expert gespecialiseerd in ${kanaalNamen[kanaal]}. Geef altijd alleen geldige JSON terug, geen extra tekst.` },
         { role: 'user', content: prompt }
       ],
       max_tokens: 4000,
@@ -185,7 +195,7 @@ Datums in volgorde: ${aantalPosts.join(', ')}`;
     const jsonStart = raw.indexOf('[');
     const jsonEnd = raw.lastIndexOf(']') + 1;
     const posts = JSON.parse(raw.slice(jsonStart, jsonEnd));
-    res.json({ success: true, posts, project });
+    res.json({ success: true, posts, project, kanaal });
   } catch (err) {
     console.error('Kalender genereer fout:', err.message);
     res.status(500).json({ success: false, message: `Fout bij genereren: ${err.message}` });

@@ -679,9 +679,14 @@
           <option value="MA">Matti</option>
           <option value="AD">AI Doc</option>
         </select>
+        <select class="kal-select" id="kalKanaal">
+          <option value="linkedin">LinkedIn</option>
+          <option value="facebook">Facebook</option>
+          <option value="instagram">Instagram</option>
+        </select>
         <select class="kal-select" id="kalFrequentie">
-          <option value="3">3x per week (ma · wo · vr)</option>
-          <option value="2">2x per week (ma · do)</option>
+          <option value="3">3x per week</option>
+          <option value="2">2x per week</option>
         </select>
         <button class="btn-genereer" id="btnGenereer">
           <span id="genereerIcon">✨</span>
@@ -1092,6 +1097,9 @@ function vandaagIso() {
 }
 
 function renderKalender() {
+  const kanaalIcoon = { linkedin: '💼', facebook: '📘', instagram: '📸' };
+  const kanaalLabel = { linkedin: 'LinkedIn', facebook: 'Facebook', instagram: 'Instagram' };
+
   const lijst = document.getElementById('kalLijst');
   if (!kalPosts.length) {
     lijst.innerHTML = '<div class="empty">Nog geen posts gegenereerd. Klik op "Maand genereren" om te starten.</div>';
@@ -1104,7 +1112,10 @@ function renderKalender() {
   const vandaagBox = document.getElementById('kalVandaag');
   if (vandaagPost) {
     kalVandaagId = vandaagPost.id;
+    const kicoon = kanaalIcoon[vandaagPost.kanaal] || '💼';
     document.getElementById('kalVandaagContent').textContent = vandaagPost.content;
+    document.getElementById('kalVandaag').querySelector('.kal-vandaag-label').textContent =
+      `${kicoon} Post voor vandaag · ${kanaalLabel[vandaagPost.kanaal] || 'LinkedIn'}`;
     vandaagBox.classList.add('zichtbaar');
   } else {
     vandaagBox.classList.remove('zichtbaar');
@@ -1115,7 +1126,10 @@ function renderKalender() {
     <div class="kal-post${p.geplaatst ? ' geplaatst' : ''}" id="kp-${p.id}">
       <div class="kal-post-header" data-pid="${p.id}">
         <div>
-          <div class="kal-post-datum">${formatDatum(p.datum)}${p.datum === vandaag ? ' <span style="color:var(--so);font-size:.7rem;font-weight:700">VANDAAG</span>' : ''}</div>
+          <div class="kal-post-datum">
+            ${kanaalIcoon[p.kanaal] || '💼'} ${formatDatum(p.datum)}${p.datum === vandaag ? ' <span style="color:var(--so);font-size:.7rem;font-weight:700">VANDAAG</span>' : ''}
+            <span style="font-size:.7rem;color:var(--muted);margin-left:6px">${p.project || 'SO'}</span>
+          </div>
           <div class="kal-post-preview">${esc(p.content.slice(0, 80))}…</div>
         </div>
         <div class="kal-post-right">
@@ -1194,20 +1208,21 @@ async function genereerMaand() {
   label.textContent = 'Genereren...';
 
   const project = document.getElementById('kalProject').value;
+  const kanaal = document.getElementById('kalKanaal').value;
   const frequentie = +document.getElementById('kalFrequentie').value;
 
   try {
     const r = await fetch('/api/kalender/genereer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ project, frequentie, startDatum: vandaagIso() })
+      body: JSON.stringify({ project, kanaal, frequentie, startDatum: vandaagIso() })
     });
     const d = await r.json();
     if (d.success && d.posts?.length) {
-      const bestaandeDatums = new Set(kalPosts.map(p => p.datum));
+      const bestaandeSleutels = new Set(kalPosts.map(p => p.datum + '_' + (p.kanaal || 'linkedin') + '_' + (p.project || 'SO')));
       const nieuw = d.posts
-        .filter(p => !bestaandeDatums.has(p.datum))
-        .map(p => ({ id: Date.now() + Math.random(), datum: p.datum, content: p.content, geplaatst: false }));
+        .filter(p => !bestaandeSleutels.has(p.datum + '_' + kanaal + '_' + project))
+        .map(p => ({ id: Date.now() + Math.random(), datum: p.datum, content: p.content, geplaatst: false, kanaal, project }));
       kalPosts = [...kalPosts, ...nieuw].sort((a, b) => a.datum.localeCompare(b.datum));
       ls.set('cc_kalender', kalPosts);
       renderKalender();
