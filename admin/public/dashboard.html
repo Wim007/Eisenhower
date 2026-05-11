@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — SamenOntzorgen Beheer</title>
+  <title>Command Center — Wim</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,515 +13,538 @@
       --raised:  #1f2e42;
       --border:  #263244;
       --accent:  #00BCD4;
-      --accent2: #1B4F72;
+      --matti:   #8B5CF6;
+      --aidoc:   #10B981;
       --text:    #e2e8f0;
       --muted:   #8899aa;
       --danger:  #f87171;
       --green:   #4ade80;
+      --warn:    #fbbf24;
     }
     html, body { height: 100%; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
 
-    /* ── TOP BAR ─────────────────────────────────── */
+    /* TOP BAR */
     .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      height: 56px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 56px; background: var(--surface);
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+      position: sticky; top: 0; z-index: 100;
     }
-    .topbar-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; }
-    .topbar-brand span { color: var(--accent); }
-    .topbar-right { display: flex; align-items: center; gap: 14px; }
-    .larry-status {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 0.78rem; color: var(--muted);
-    }
-    .larry-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-    }
+    .topbar-brand { font-weight: 700; font-size: 1rem; }
     .btn-logout {
-      padding: 6px 14px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--muted);
-      font-size: 0.82rem;
-      font-family: inherit;
-      cursor: pointer;
-      transition: border-color .2s, color .2s;
+      padding: 6px 14px; background: transparent; border: 1px solid var(--border);
+      border-radius: 6px; color: var(--muted); font-size: 0.82rem;
+      font-family: inherit; cursor: pointer; transition: border-color .2s, color .2s;
     }
     .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
-    /* ── LAYOUT ──────────────────────────────────── */
-    .layout {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    /* LAYOUT */
+    .layout { display: flex; flex: 1; overflow: hidden; }
 
-    /* ── SIDEBAR ─────────────────────────────────── */
+    /* SIDEBAR */
     .sidebar {
-      width: 220px;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      padding: 24px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex-shrink: 0;
+      width: 210px; background: var(--surface); border-right: 1px solid var(--border);
+      padding: 16px 10px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0;
+    }
+    .nav-section {
+      font-size: 0.68rem; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .08em; padding: 12px 12px 5px;
     }
     .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      color: var(--muted);
-      transition: background .15s, color .15s;
-      border: none;
-      background: transparent;
-      font-family: inherit;
-      width: 100%;
-      text-align: left;
+      display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+      border-radius: 8px; cursor: pointer; font-size: 0.88rem; color: var(--muted);
+      transition: background .15s, color .15s; border: none; background: transparent;
+      font-family: inherit; width: 100%; text-align: left;
     }
     .nav-item:hover { background: var(--raised); color: var(--text); }
     .nav-item.active { background: rgba(0,188,212,.12); color: var(--accent); }
-    .nav-icon { font-size: 1.1rem; width: 22px; text-align: center; }
+    .nav-item.active[data-panel="ma"] { background: rgba(139,92,246,.12); color: var(--matti); }
+    .nav-item.active[data-panel="ad"] { background: rgba(16,185,129,.12); color: var(--aidoc); }
+    .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-so { background: var(--accent); }
+    .dot-ma { background: var(--matti); }
+    .dot-ad { background: var(--aidoc); }
 
-    /* ── MAIN ────────────────────────────────────── */
-    .main {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-    }
+    /* MAIN */
+    .main { flex: 1; overflow-y: auto; padding: 24px; }
     .panel { display: none; }
-    .panel.active { display: flex; flex-direction: column; height: 100%; }
+    .panel.active { display: block; }
 
-    /* ── CHAT PANEL ──────────────────────────────── */
+    /* BADGES */
+    .proj-badge {
+      display: inline-block; padding: 2px 7px; border-radius: 10px;
+      font-size: 0.68rem; font-weight: 600; letter-spacing: .03em;
+    }
+    .badge-so { background: rgba(0,188,212,.15); color: var(--accent); }
+    .badge-ma { background: rgba(139,92,246,.15); color: var(--matti); }
+    .badge-ad { background: rgba(16,185,129,.15); color: var(--aidoc); }
+
+    /* VANDAAG */
+    .vandaag-datum { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+    .vandaag-titel { font-size: 1.4rem; font-weight: 700; margin-bottom: 28px; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .section-sub { font-size: 0.75rem; color: var(--muted); }
+
+    /* PRIORITEITEN */
+    .prio-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .prio-item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 13px 16px; transition: opacity .2s;
+    }
+    .prio-item.done { opacity: .4; }
+    .prio-toggle {
+      width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border);
+      cursor: pointer; flex-shrink: 0; background: transparent; display: flex;
+      align-items: center; justify-content: center; transition: all .15s;
+      font-size: 0.7rem; font-weight: 700; color: transparent;
+    }
+    .prio-item.done .prio-toggle { background: var(--green); border-color: var(--green); color: #000; }
+    .prio-tekst { flex: 1; font-size: 0.9rem; }
+    .prio-item.done .prio-tekst { text-decoration: line-through; }
+    .prio-del { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem; transition: color .15s; }
+    .prio-del:hover { color: var(--danger); }
+    .prio-add {
+      display: flex; gap: 8px; align-items: center;
+      background: var(--surface); border: 1px dashed var(--border);
+      border-radius: 10px; padding: 11px 14px; margin-bottom: 32px;
+    }
+    .prio-add-input {
+      flex: 1; background: transparent; border: none; color: var(--text);
+      font-size: 0.88rem; font-family: inherit; outline: none;
+    }
+    .prio-add-input::placeholder { color: var(--muted); }
+    .prio-proj-sel {
+      background: var(--raised); border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); font-size: 0.76rem; font-family: inherit;
+      padding: 4px 7px; outline: none; cursor: pointer;
+    }
+    .btn-sm {
+      padding: 6px 13px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: opacity .2s; border: none;
+    }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-primary:hover { opacity: .85; }
+
+    /* OUTREACH QUEUE (vandaag) */
+    .outreach-queue { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+    .q-card {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 13px 16px;
+    }
+    .q-info { flex: 1; }
+    .q-name { font-size: 0.9rem; font-weight: 500; margin-bottom: 3px; }
+    .q-org  { font-size: 0.76rem; color: var(--muted); }
+    .q-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-draft {
+      padding: 6px 11px; background: var(--raised); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--accent); font-size: 0.76rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; white-space: nowrap; transition: background .15s;
+    }
+    .btn-draft:hover { background: rgba(0,188,212,.1); }
+    .btn-sent-q {
+      padding: 6px 11px; background: var(--raised); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--muted); font-size: 0.76rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; white-space: nowrap; transition: all .15s;
+    }
+    .btn-sent-q:hover { background: rgba(74,222,128,.1); color: var(--green); }
+
+    /* VERSTUURD */
+    .sent-list { display: flex; flex-direction: column; gap: 8px; }
+    .sent-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+    }
+    .sent-check { color: var(--green); font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .sent-info { flex: 1; }
+    .sent-name { font-size: 0.88rem; font-weight: 500; margin-bottom: 2px; }
+    .sent-preview { font-size: 0.76rem; color: var(--muted); font-style: italic; }
+    .sent-time { font-size: 0.72rem; color: var(--muted); flex-shrink: 0; }
+
+    /* OUTREACH PANEL */
+    .outreach-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .filter-btn {
+      padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border);
+      background: var(--raised); color: var(--muted); font-size: 0.76rem;
+      font-family: inherit; cursor: pointer; transition: all .15s;
+    }
+    .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,188,212,.08); }
+    .filter-btn.f-ma.active { border-color: var(--matti); color: var(--matti); background: rgba(139,92,246,.08); }
+    .filter-btn.f-ad.active { border-color: var(--aidoc); color: var(--aidoc); background: rgba(16,185,129,.08); }
+
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+    .contact-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px;
+    }
+    .cc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+    .cc-name { font-size: 0.95rem; font-weight: 600; margin-bottom: 3px; }
+    .cc-role { font-size: 0.76rem; color: var(--muted); }
+    .cc-status { display: flex; align-items: center; gap: 7px; margin-bottom: 14px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .status-dot.te-benaderen { background: var(--warn); }
+    .status-dot.benaderd     { background: var(--accent); }
+    .status-dot.reactie      { background: var(--green); }
+    .status-dot.gewonnen     { background: var(--green); }
+    .cc-status-lbl { font-size: 0.74rem; color: var(--muted); }
+    .cc-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .cc-btn {
+      padding: 5px 9px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--raised); color: var(--muted); font-size: 0.73rem;
+      font-family: inherit; cursor: pointer; transition: all .15s;
+    }
+    .cc-btn:hover { background: var(--border); color: var(--text); }
+    .cc-btn.prim { color: var(--accent); border-color: rgba(0,188,212,.3); }
+    .cc-btn.prim:hover { background: rgba(0,188,212,.1); }
+    .cc-btn.danger { color: var(--danger); border-color: rgba(248,113,113,.2); }
+    .cc-history { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: none; }
+    .cc-history.open { display: block; }
+    .hist-item { font-size: 0.74rem; color: var(--muted); margin-bottom: 4px; }
+
+    /* ADD CONTACT FORM */
+    .add-form {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; margin-bottom: 18px; display: none;
+    }
+    .add-form.open { display: block; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.76rem; color: var(--muted); margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--text); font-size: 0.86rem;
+      font-family: inherit; padding: 8px 11px; outline: none; transition: border-color .2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group select option { background: var(--surface); }
+    .form-btns { display: flex; gap: 8px; margin-top: 14px; }
+    .btn-cancel {
+      padding: 6px 13px; background: var(--raised); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--muted); font-size: 0.8rem; font-family: inherit;
+      cursor: pointer; transition: all .15s;
+    }
+    .btn-cancel:hover { color: var(--text); border-color: var(--text); }
+
+    /* CHAT */
     .chat-wrap {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
+      display: flex; flex-direction: column; height: calc(100vh - 120px);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
     }
-    .chat-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .chat-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
     .chat-avatar {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, var(--accent2), var(--accent));
-      border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1.1rem; flex-shrink: 0;
     }
-    .chat-header-info h2 { font-size: 1rem; font-weight: 600; }
-    .chat-header-info p  { font-size: 0.78rem; color: var(--muted); }
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .msg {
-      display: flex;
-      gap: 10px;
-      max-width: 85%;
-    }
+    .av-so { background: linear-gradient(135deg, #1B4F72, #00BCD4); }
+    .av-ma { background: linear-gradient(135deg, #4C1D95, #8B5CF6); }
+    .av-ad { background: linear-gradient(135deg, #065F46, #10B981); }
+    .chat-header-info h2 { font-size: 0.95rem; font-weight: 600; }
+    .chat-header-info p  { font-size: 0.74rem; color: var(--muted); }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .msg { display: flex; gap: 10px; max-width: 85%; }
     .msg.user { align-self: flex-end; flex-direction: row-reverse; }
     .msg-bubble {
-      padding: 11px 15px;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      line-height: 1.55;
-      white-space: pre-wrap;
+      padding: 10px 14px; border-radius: 12px;
+      font-size: 0.88rem; line-height: 1.55; white-space: pre-wrap;
     }
-    .msg.user .msg-bubble {
-      background: var(--accent2);
-      border-bottom-right-radius: 4px;
-    }
-    .msg.larry .msg-bubble {
-      background: var(--raised);
-      border-bottom-left-radius: 4px;
-    }
-    .msg-icon {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.85rem;
-      flex-shrink: 0;
-      align-self: flex-end;
-    }
-    .msg.user .msg-icon  { background: var(--accent2); }
-    .msg.larry .msg-icon { background: linear-gradient(135deg, var(--accent2), var(--accent)); }
-    .typing { display: flex; align-items: center; gap: 5px; padding: 12px 15px; }
-    .typing span {
-      width: 7px; height: 7px; background: var(--muted);
-      border-radius: 50%;
-      animation: bounce 1.2s infinite;
-    }
+    .msg.user  .msg-bubble { background: #1B4F72; border-bottom-right-radius: 4px; }
+    .msg.agent .msg-bubble { background: var(--raised); border-bottom-left-radius: 4px; }
+    .msg-icon  { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; align-self: flex-end; }
+    .msg.user .msg-icon { background: #1B4F72; }
+    .typing { display: flex; align-items: center; gap: 5px; padding: 10px 14px; }
+    .typing span { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s infinite; }
     .typing span:nth-child(2) { animation-delay: .2s; }
     .typing span:nth-child(3) { animation-delay: .4s; }
-    @keyframes bounce {
-      0%, 60%, 100% { transform: translateY(0); }
-      30%            { transform: translateY(-6px); }
-    }
-    .quick-prompts {
-      padding: 12px 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      border-top: 1px solid var(--border);
-    }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+    .quick-prompts { padding: 10px 18px; display: flex; flex-wrap: wrap; gap: 7px; border-top: 1px solid var(--border); }
     .qp {
-      padding: 6px 12px;
-      background: var(--raised);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 0.78rem;
-      color: var(--muted);
-      cursor: pointer;
-      transition: border-color .2s, color .2s;
-      font-family: inherit;
+      padding: 5px 11px; background: var(--raised); border: 1px solid var(--border);
+      border-radius: 20px; font-size: 0.74rem; color: var(--muted);
+      cursor: pointer; transition: all .2s; font-family: inherit;
     }
     .qp:hover { border-color: var(--accent); color: var(--accent); }
-    .chat-input-row {
-      padding: 16px 20px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-    }
+    .chat-input-row { padding: 13px 18px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-end; }
     .chat-input {
-      flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-size: 0.9rem;
-      font-family: inherit;
-      padding: 11px 14px;
-      resize: none;
-      min-height: 44px;
-      max-height: 140px;
-      outline: none;
-      transition: border-color .2s;
-      line-height: 1.5;
+      flex: 1; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 0.88rem;
+      font-family: inherit; padding: 10px 13px; resize: none;
+      min-height: 42px; max-height: 130px; outline: none; transition: border-color .2s; line-height: 1.5;
     }
     .chat-input:focus { border-color: var(--accent); }
     .btn-send {
-      width: 44px; height: 44px;
-      background: var(--accent);
-      border: none; border-radius: 10px;
-      cursor: pointer;
-      font-size: 1.1rem;
+      width: 42px; height: 42px; background: var(--accent); border: none;
+      border-radius: 10px; cursor: pointer; font-size: 1rem;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: opacity .2s;
+      flex-shrink: 0; transition: opacity .2s;
     }
     .btn-send:hover { opacity: .85; }
     .btn-send:disabled { opacity: .4; cursor: not-allowed; }
 
-    /* ── TAKEN PANEL ─────────────────────────────── */
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 20px;
-    }
-    .taken-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-    .card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.88rem;
-      font-family: inherit;
-      padding: 9px 12px;
-      outline: none;
-      transition: border-color .2s;
-    }
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus { border-color: var(--accent); }
-    .form-group select option { background: var(--surface); }
-    .btn-primary {
-      padding: 10px 18px;
-      background: var(--accent);
-      color: #fff;
-      border: none; border-radius: 8px;
-      font-size: 0.88rem; font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: opacity .2s;
-    }
-    .btn-primary:hover { opacity: .85; }
-    .taak-list { display: flex; flex-direction: column; gap: 10px; }
+    /* TAKEN */
+    .taken-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .card h3 { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+    .taak-list { display: flex; flex-direction: column; gap: 8px; }
     .taak-card {
-      background: var(--raised);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
+      background: var(--raised); border: 1px solid var(--border); border-radius: 8px;
+      padding: 11px 14px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
     }
     .taak-info { flex: 1; }
-    .taak-agent {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      margin-bottom: 4px;
-    }
-    .taak-opdracht { font-size: 0.88rem; margin-bottom: 4px; }
-    .taak-meta { font-size: 0.76rem; color: var(--muted); }
-    .btn-del {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 1rem;
-      padding: 2px;
-      transition: color .2s;
-    }
+    .taak-agent { font-size: 0.68rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+    .taak-opdracht { font-size: 0.84rem; margin-bottom: 3px; }
+    .taak-meta { font-size: 0.72rem; color: var(--muted); }
+    .btn-del { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem; transition: color .15s; }
     .btn-del:hover { color: var(--danger); }
-    .empty { color: var(--muted); font-size: 0.88rem; padding: 12px 0; }
+    .empty { color: var(--muted); font-size: 0.84rem; padding: 6px 0; }
 
-    /* ── LEDEN PANEL ─────────────────────────────── */
-    .leden-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
+    /* DRAFT MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 500; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 520px; max-width: 95vw; max-height: 85vh; overflow-y: auto; }
+    .modal h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+    .modal .modal-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 18px; }
+    .draft-box {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px; font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap;
+      min-height: 100px; margin-bottom: 16px; color: var(--text);
     }
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-    }
-    .stat-num { font-size: 2rem; font-weight: 700; color: var(--accent); }
-    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
-    .leden-table-wrap {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    th {
-      padding: 12px 16px;
-      text-align: left;
-      font-size: 0.78rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      border-bottom: 1px solid var(--border);
-      background: var(--raised);
-    }
-    td {
-      padding: 12px 16px;
-      font-size: 0.88rem;
-      border-bottom: 1px solid var(--border);
-    }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--raised); }
-    .badge {
-      display: inline-block;
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: 0.73rem;
-      font-weight: 600;
-    }
-    .badge-zzp   { background: rgba(0,188,212,.15); color: var(--accent); }
-    .badge-deel  { background: rgba(74,222,128,.15); color: var(--green); }
-    .badge-harts { background: rgba(251,191,36,.15); color: #fbbf24; }
+    .modal-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+    .btn-copy { padding: 9px 18px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-size: 0.84rem; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .btn-copy:hover { opacity: .85; }
+    .btn-mark-sent { padding: 9px 18px; background: rgba(74,222,128,.15); border: 1px solid rgba(74,222,128,.3); border-radius: 8px; color: var(--green); font-size: 0.84rem; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .btn-mark-sent:hover { opacity: .85; }
+    .btn-modal-cancel { padding: 9px 18px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 0.84rem; font-family: inherit; cursor: pointer; }
+    .btn-modal-cancel:hover { border-color: var(--text); color: var(--text); }
 
-    /* ── LOG PANEL ───────────────────────────────── */
-    .log-list { display: flex; flex-direction: column; gap: 8px; }
-    .log-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 13px 16px;
-    }
-    .log-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
-    .log-body { flex: 1; }
-    .log-tekst { font-size: 0.88rem; margin-bottom: 3px; }
-    .log-time  { font-size: 0.76rem; color: var(--muted); }
-
-    /* ── MOBILE NAV ──────────────────────────────── */
-    .mobile-nav {
-      display: none;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 8px 0 env(safe-area-inset-bottom, 8px);
-      z-index: 200;
-    }
-    .mobile-nav-inner {
-      display: flex;
-      justify-content: space-around;
-    }
-    .mnav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      padding: 6px 16px;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      font-family: inherit;
-      color: var(--muted);
-      font-size: 0.7rem;
-      transition: color .15s;
-    }
-    .mnav-item .mnav-icon { font-size: 1.3rem; }
+    /* MOBILE NAV */
+    .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 8px 0 env(safe-area-inset-bottom, 8px); z-index: 200; }
+    .mobile-nav-inner { display: flex; justify-content: space-around; }
+    .mnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 10px; cursor: pointer; border: none; background: transparent; font-family: inherit; color: var(--muted); font-size: 0.62rem; transition: color .15s; }
+    .mnav-item .mnav-icon { font-size: 1.2rem; }
     .mnav-item.active { color: var(--accent); }
 
-    /* ── RESPONSIVE ──────────────────────────────── */
     @media (max-width: 768px) {
       .sidebar { display: none; }
       .mobile-nav { display: block; }
       .main { padding: 16px 14px 80px; }
-      .taken-grid { grid-template-columns: 1fr; }
-      .leden-stats { grid-template-columns: repeat(3, 1fr); }
+      .taken-layout { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .chat-wrap { height: calc(100vh - 160px); }
       .msg { max-width: 95%; }
     }
     @media (max-width: 480px) {
-      .leden-stats { grid-template-columns: 1fr 1fr; }
-      table th:nth-child(3), table td:nth-child(3) { display: none; }
+      .contact-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- TOP BAR -->
-  <header class="topbar">
-    <div class="topbar-brand">🌿 Samen<span>Ontzorgen</span></div>
-    <div class="topbar-right">
-      <div class="larry-status">
-        <div class="larry-dot"></div>
-        Larry online
+<header class="topbar">
+  <div class="topbar-brand">⚡ Command Center</div>
+  <button class="btn-logout" id="btnLogout">Uitloggen</button>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="nav-section">Focus</div>
+    <button class="nav-item active" data-panel="vandaag">🎯 Vandaag</button>
+    <button class="nav-item" data-panel="outreach">📩 Outreach</button>
+    <div class="nav-section">Projecten</div>
+    <button class="nav-item" data-panel="so"><span class="nav-dot dot-so"></span> SamenOntzorgen</button>
+    <button class="nav-item" data-panel="ma"><span class="nav-dot dot-ma"></span> Matti</button>
+    <button class="nav-item" data-panel="ad"><span class="nav-dot dot-ad"></span> AI Doc</button>
+    <div class="nav-section">Beheer</div>
+    <button class="nav-item" data-panel="taken">📋 Taken</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- VANDAAG -->
+    <div class="panel active" id="panel-vandaag">
+      <div class="vandaag-datum" id="vandaagDatum"></div>
+      <div class="vandaag-titel">Goedemorgen, Wim.</div>
+
+      <div class="section-head">
+        <div class="section-label">Prioriteiten</div>
+        <div class="section-sub" id="prioTeller">0 / 3</div>
       </div>
-      <button class="btn-logout" id="btnLogout">Uitloggen</button>
+      <div class="prio-list" id="prioList"></div>
+      <div class="prio-add" id="prioAddRow">
+        <input class="prio-add-input" id="prioInput" placeholder="Nieuwe prioriteit toevoegen..." />
+        <select class="prio-proj-sel" id="prioProject">
+          <option value="SO">SO</option>
+          <option value="MA">MA</option>
+          <option value="AD">AD</option>
+        </select>
+        <button class="btn-sm btn-primary" id="btnPrioAdd">+</button>
+      </div>
+
+      <div class="section-head">
+        <div class="section-label">Outreach vandaag</div>
+        <div class="section-sub">Te benaderen</div>
+      </div>
+      <div class="outreach-queue" id="vandaagQueue"></div>
+
+      <div class="section-head">
+        <div class="section-label">Verstuurd vandaag</div>
+        <div class="section-sub" id="sentTeller">0</div>
+      </div>
+      <div class="sent-list" id="sentList"></div>
     </div>
-  </header>
 
-  <div class="layout">
+    <!-- OUTREACH -->
+    <div class="panel" id="panel-outreach">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div style="font-size:1.1rem;font-weight:600">Outreach</div>
+        <button class="btn-sm btn-primary" id="btnNieuwContact">+ Contact toevoegen</button>
+      </div>
 
-    <!-- SIDEBAR -->
-    <nav class="sidebar">
-      <button class="nav-item active" data-panel="chat">
-        <span class="nav-icon">💬</span> Chat met Larry
-      </button>
-      <button class="nav-item" data-panel="taken">
-        <span class="nav-icon">📋</span> Taakplanner
-      </button>
-      <button class="nav-item" data-panel="leden">
-        <span class="nav-icon">👥</span> Leden
-      </button>
-      <button class="nav-item" data-panel="log">
-        <span class="nav-icon">📊</span> Activiteitenlog
-      </button>
-    </nav>
-
-    <!-- MAIN -->
-    <main class="main">
-
-      <!-- ── CHAT PANEL ── -->
-      <div class="panel active" id="panel-chat">
-        <div class="chat-wrap">
-          <div class="chat-header">
-            <div class="chat-avatar">🤖</div>
-            <div class="chat-header-info">
-              <h2>Larry — Orchestrator</h2>
-              <p>Geeft opdrachten aan het hele team</p>
-            </div>
+      <div class="add-form" id="addContactForm">
+        <div class="form-row">
+          <div class="form-group"><label>Naam</label><input id="cNaam" placeholder="Jan de Vries" /></div>
+          <div class="form-group"><label>Organisatie</label><input id="cOrg" placeholder="Zorginstelling Noord" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Functie</label><input id="cFunctie" placeholder="HR Directeur" /></div>
+          <div class="form-group">
+            <label>Project</label>
+            <select id="cProject">
+              <option value="SO">SamenOntzorgen</option>
+              <option value="MA">Matti</option>
+              <option value="AD">AI Doc</option>
+            </select>
           </div>
-          <div class="chat-messages" id="chatMessages">
-            <div class="msg larry">
-              <div class="msg-icon">🤖</div>
-              <div class="msg-bubble">Goeiedag Wim! Ik ben er klaar voor. Wat gaan we vandaag aanpakken?</div>
-            </div>
-          </div>
-          <div class="quick-prompts">
-            <button class="qp" data-q="Wat zou je deze week als eerste aanpakken?">🎯 Prioriteit deze week</button>
-            <button class="qp" data-q="Schrijf een LinkedIn post voor HR-directeuren">✍️ LinkedIn post</button>
-            <button class="qp" data-q="Zoek 5 kleine thuiszorgaanbieders in de regio Amsterdam">🔍 Prospects zoeken</button>
-            <button class="qp" data-q="Bereid me voor op een gesprek met Laurens van de VVT-instelling">📞 Gesprek voorbereiden</button>
-            <button class="qp" data-q="Wat is de status van onze outreach campagnes?">📊 Status update</button>
-          </div>
-          <div class="chat-input-row">
-            <textarea class="chat-input" id="chatInput" placeholder="Typ een bericht aan Larry..." rows="1"></textarea>
-            <button class="btn-send" id="btnSend">➤</button>
-          </div>
+        </div>
+        <div class="form-group"><label>LinkedIn URL (optioneel)</label><input id="cLinkedin" placeholder="https://linkedin.com/in/..." /></div>
+        <div class="form-group"><label>Notitie / context</label><textarea id="cNotitie" rows="2" placeholder="Hoe gevonden, relevante context..."></textarea></div>
+        <div class="form-btns">
+          <button class="btn-sm btn-primary" id="btnContactOpslaan">Opslaan</button>
+          <button class="btn-cancel" id="btnContactAnnuleren">Annuleren</button>
         </div>
       </div>
 
-      <!-- ── TAKEN PANEL ── -->
-      <div class="panel" id="panel-taken">
-        <div class="taken-grid">
-          <div class="card">
-            <h3>Nieuwe taak plannen</h3>
-            <div class="form-group">
-              <label>Opdracht</label>
-              <textarea id="taakOpdracht" rows="3" placeholder="Bijv. Stuur wekelijks een LinkedIn post over VBAR-compliance"></textarea>
-            </div>
+      <div class="outreach-toolbar">
+        <button class="filter-btn active" data-filter="alle">Alle</button>
+        <button class="filter-btn" data-filter="SO">SamenOntzorgen</button>
+        <button class="filter-btn f-ma" data-filter="MA">Matti</button>
+        <button class="filter-btn f-ad" data-filter="AD">AI Doc</button>
+        <button class="filter-btn" data-filter="te-benaderen">Te benaderen</button>
+        <button class="filter-btn" data-filter="benaderd">Benaderd</button>
+        <button class="filter-btn" data-filter="reactie">Reactie</button>
+      </div>
+      <div class="contact-grid" id="contactGrid"></div>
+    </div>
+
+    <!-- SAMENONTZORGEN CHAT -->
+    <div class="panel" id="panel-so">
+      <div class="chat-wrap">
+        <div class="chat-header">
+          <div class="chat-avatar av-so">🤖</div>
+          <div class="chat-header-info">
+            <h2>Larry — SamenOntzorgen</h2>
+            <p>Project Manager · Coöperatief flex-platform zorg</p>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMsgs-so">
+          <div class="msg agent">
+            <div class="msg-icon av-so">🤖</div>
+            <div class="msg-bubble">Goeiedag Wim! Ik ben klaar voor SamenOntzorgen. Wat pakken we aan?</div>
+          </div>
+        </div>
+        <div class="quick-prompts">
+          <button class="qp" data-chat="so" data-q="Wat is onze beste volgende stap richting Laurens?">🎯 Volgende stap Laurens</button>
+          <button class="qp" data-chat="so" data-q="Schrijf een LinkedIn post voor HR-directeuren over VBAR-compliance">✍️ LinkedIn post</button>
+          <button class="qp" data-chat="so" data-q="Zoek 5 VVT-instellingen in Amsterdam die we kunnen benaderen">🔍 Prospects zoeken</button>
+          <button class="qp" data-chat="so" data-q="Bereid me voor op een gesprek met een zorginstelling die twijfelt over het coöperatiemodel">📞 Gesprek voorbereiden</button>
+          <button class="qp" data-chat="so" data-q="Wat is de status van onze outreach campagnes?">📊 Status update</button>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chatInput-so" placeholder="Typ aan Larry..." rows="1"></textarea>
+          <button class="btn-send" data-chat="so">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATTI CHAT -->
+    <div class="panel" id="panel-ma">
+      <div class="chat-wrap">
+        <div class="chat-header">
+          <div class="chat-avatar av-ma">🧠</div>
+          <div class="chat-header-info">
+            <h2>Marina — Matti</h2>
+            <p>Project Manager · Mentale ondersteuning voor jongeren</p>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMsgs-ma">
+          <div class="msg agent">
+            <div class="msg-icon av-ma">🧠</div>
+            <div class="msg-bubble">Hey Wim! Marina hier. Wat gaan we vandaag doen voor Matti?</div>
+          </div>
+        </div>
+        <div class="quick-prompts">
+          <button class="qp" data-chat="ma" data-q="[MATTI] Welke scholen zijn het meest geschikt voor de eerste pilot?">🏫 Scholen voor pilot</button>
+          <button class="qp" data-chat="ma" data-q="[MATTI] Schrijf een outreach bericht voor een zorgcoördinator op een middelbare school">✉️ Bericht schoolcontact</button>
+          <button class="qp" data-chat="ma" data-q="[MATTI] Hoe maken we de pitch voor schooldirecteuren sterker?">💡 Pitch versterken</button>
+          <button class="qp" data-chat="ma" data-q="[MATTI] Wat is de huidige status van de Matti pilot en wat is de volgende stap?">📊 Status update</button>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chatInput-ma" placeholder="Typ aan Marina..." rows="1"></textarea>
+          <button class="btn-send" data-chat="ma">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI DOC CHAT -->
+    <div class="panel" id="panel-ad">
+      <div class="chat-wrap">
+        <div class="chat-header">
+          <div class="chat-avatar av-ad">🩺</div>
+          <div class="chat-header-info">
+            <h2>Sophia — AI Doc</h2>
+            <p>Project Manager · AI-assistent voor huisartsenpraktijken</p>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMsgs-ad">
+          <div class="msg agent">
+            <div class="msg-icon av-ad">🩺</div>
+            <div class="msg-bubble">Goedemorgen Wim. Sophia hier. Wat staat er op de agenda voor AI Doc?</div>
+          </div>
+        </div>
+        <div class="quick-prompts">
+          <button class="qp" data-chat="ad" data-q="[AI DOC] Zoek 5 huisartsenpraktijken die interesse zouden kunnen hebben in een AI-assistent">🔍 Praktijken zoeken</button>
+          <button class="qp" data-chat="ad" data-q="[AI DOC] Schrijf een bericht voor een huisarts over tijdsbesparing via AI-transcriptie">✉️ Bericht huisarts</button>
+          <button class="qp" data-chat="ad" data-q="[AI DOC] Hoe pakken we de pilot voor 2026 aan?">🗓️ Pilot 2026 plannen</button>
+          <button class="qp" data-chat="ad" data-q="[AI DOC] Wat zijn de compliance-risico's die we moeten adresseren?">⚖️ Compliance check</button>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chatInput-ad" placeholder="Typ aan Sophia..." rows="1"></textarea>
+          <button class="btn-send" data-chat="ad">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAKEN -->
+    <div class="panel" id="panel-taken">
+      <div class="taken-layout">
+        <div class="card">
+          <h3>Taak plannen</h3>
+          <div class="form-group">
+            <label>Opdracht</label>
+            <textarea id="taakOpdracht" rows="3" placeholder="Bijv. Stuur wekelijks een LinkedIn post over VBAR-compliance"></textarea>
+          </div>
+          <div class="form-row" style="margin-bottom:0">
             <div class="form-group">
               <label>Herhaling</label>
               <select id="taakHerhaling">
                 <option value="eenmalig">Eenmalig</option>
                 <option value="dagelijks">Dagelijks</option>
                 <option value="wekelijks">Wekelijks</option>
-                <option value="tweewekelijks">Tweewekelijks</option>
                 <option value="maandelijks">Maandelijks</option>
               </select>
             </div>
@@ -529,283 +552,483 @@
               <label>Dag</label>
               <select id="taakDag">
                 <option value="">— kies dag —</option>
-                <option>Maandag</option>
-                <option>Dinsdag</option>
-                <option>Woensdag</option>
-                <option>Donderdag</option>
-                <option>Vrijdag</option>
+                <option>Maandag</option><option>Dinsdag</option>
+                <option>Woensdag</option><option>Donderdag</option><option>Vrijdag</option>
               </select>
             </div>
+          </div>
+          <div class="form-row" style="margin-bottom:0">
             <div class="form-group">
               <label>Tijdstip</label>
               <input type="time" id="taakTijd" value="09:00" />
             </div>
             <div class="form-group">
-              <label>Agent</label>
-              <select id="taakAgent">
-                <option value="Larry">Larry (laat Larry beslissen)</option>
+              <label>Project</label>
+              <select id="taakProj">
+                <option value="SO">SamenOntzorgen</option>
+                <option value="MA">Matti</option>
+                <option value="AD">AI Doc</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Agent</label>
+            <select id="taakAgent">
+              <optgroup label="SamenOntzorgen">
+                <option value="Larry">Larry (orchestrator)</option>
+                <option value="Sam">Sam — LinkedIn B2B outreach</option>
                 <option value="Vera">Vera — LinkedIn content</option>
                 <option value="Rosa">Rosa — Facebook content</option>
-                <option value="Finn">Finn — LinkedIn outreach</option>
-                <option value="Daan">Daan — Facebook outreach</option>
-                <option value="Sam">Sam — LinkedIn B2B outreach</option>
-                <option value="Bram">Bram — Huisartsen outreach</option>
+                <option value="Finn">Finn — LinkedIn outreach *</option>
+                <option value="Daan">Daan — Facebook outreach *</option>
+                <option value="Bram">Bram — Huisartsen outreach *</option>
                 <option value="Iris">Iris — Prospects zoeken</option>
                 <option value="Bax">Bax — Research</option>
                 <option value="Nova">Nova — Deal coaching</option>
                 <option value="Lena">Lena — Intake</option>
-              </select>
-            </div>
-            <button class="btn-primary" id="btnTaakOpslaan">Taak opslaan</button>
+              </optgroup>
+              <optgroup label="Matti">
+                <option value="Marina">Marina (orchestrator)</option>
+                <option value="Sophie">Sophie — School outreach</option>
+                <option value="Josh">Josh — Instagram</option>
+                <option value="Maya">Maya — Community</option>
+                <option value="Zoe">Zoe — TikTok</option>
+              </optgroup>
+              <optgroup label="AI Doc">
+                <option value="Sophia">Sophia (orchestrator)</option>
+                <option value="Henri">Henri — GP outreach</option>
+                <option value="François">François — Medical content</option>
+                <option value="Esther">Esther — Medical strategy</option>
+              </optgroup>
+            </select>
           </div>
-
-          <div class="card">
-            <h3>Geplande taken</h3>
-            <div class="taak-list" id="taakList">
-              <div class="empty">Nog geen taken gepland.</div>
-            </div>
-          </div>
+          <button class="btn-sm btn-primary" id="btnTaakOpslaan">Taak opslaan</button>
+          <p style="font-size:0.7rem;color:var(--muted);margin-top:8px">* Vereist jouw goedkeuring voor verzenden</p>
+        </div>
+        <div class="card">
+          <h3>Geplande taken</h3>
+          <div class="taak-list" id="taakList"><div class="empty">Nog geen taken gepland.</div></div>
         </div>
       </div>
-
-      <!-- ── LEDEN PANEL ── -->
-      <div class="panel" id="panel-leden">
-        <div class="leden-stats">
-          <div class="stat-card">
-            <div class="stat-num" id="statTotaal">0</div>
-            <div class="stat-label">Totaal leden</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-num" id="statZzp">0</div>
-            <div class="stat-label">ZZP'ers</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-num" id="statDeel">0</div>
-            <div class="stat-label">Deeltijdwerkers</div>
-          </div>
-        </div>
-        <div class="leden-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Naam</th>
-                <th>Type</th>
-                <th>Aangemeld</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="ledenTbody">
-              <tr>
-                <td colspan="4" style="color:var(--muted);text-align:center;padding:24px">
-                  Leden worden zichtbaar zodra Lena intakes heeft verwerkt.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ── LOG PANEL ── -->
-      <div class="panel" id="panel-log">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-          <div class="section-title">Activiteitenlog</div>
-          <button class="btn-primary" id="btnLogLeeg" style="font-size:0.8rem;padding:7px 14px">Log wissen</button>
-        </div>
-        <div class="log-list" id="logList">
-          <div class="empty">Nog geen activiteit geregistreerd.</div>
-        </div>
-      </div>
-
-    </main>
-  </div>
-
-  <!-- MOBILE NAV -->
-  <nav class="mobile-nav">
-    <div class="mobile-nav-inner">
-      <button class="mnav-item active" data-panel="chat"><span class="mnav-icon">💬</span>Chat</button>
-      <button class="mnav-item" data-panel="taken"><span class="mnav-icon">📋</span>Taken</button>
-      <button class="mnav-item" data-panel="leden"><span class="mnav-icon">👥</span>Leden</button>
-      <button class="mnav-item" data-panel="log"><span class="mnav-icon">📊</span>Log</button>
     </div>
-  </nav>
+
+  </main>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="mnav-item active" data-panel="vandaag"><span class="mnav-icon">🎯</span>Vandaag</button>
+    <button class="mnav-item" data-panel="outreach"><span class="mnav-icon">📩</span>Outreach</button>
+    <button class="mnav-item" data-panel="so"><span class="mnav-icon">💚</span>SO</button>
+    <button class="mnav-item" data-panel="ma"><span class="mnav-icon">💜</span>Matti</button>
+    <button class="mnav-item" data-panel="ad"><span class="mnav-icon">🩺</span>Doc</button>
+    <button class="mnav-item" data-panel="taken"><span class="mnav-icon">📋</span>Taken</button>
+  </div>
+</nav>
+
+<!-- DRAFT MODAL -->
+<div class="modal-overlay" id="draftModal">
+  <div class="modal">
+    <h3 id="draftTitle">LinkedIn bericht</h3>
+    <div class="modal-sub" id="draftSub"></div>
+    <div class="draft-box" id="draftBox">Even genereren...</div>
+    <div class="modal-btns">
+      <button class="btn-modal-cancel" id="btnDraftSluit">Sluiten</button>
+      <button class="btn-copy" id="btnDraftCopy">Kopiëren</button>
+      <button class="btn-mark-sent" id="btnDraftSent">Verstuurd ✓</button>
+    </div>
+  </div>
+</div>
 
 <script>
-// ── Auth check ──────────────────────────────────────────────────────────────
+// ── Auth ──────────────────────────────────────────────────────────────────────
 (async () => {
   const r = await fetch('/api/check').then(r => r.json()).catch(() => ({ authenticated: false }));
   if (!r.authenticated) window.location.href = '/';
 })();
 
-// ── Panel switching ─────────────────────────────────────────────────────────
+// ── Utils ─────────────────────────────────────────────────────────────────────
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const esc  = s => s.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+const dagNamen   = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+const maandNamen = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const now = new Date();
+const vandaagStr = now.toISOString().slice(0,10);
+document.getElementById('vandaagDatum').textContent =
+  `${dagNamen[now.getDay()]} ${now.getDate()} ${maandNamen[now.getMonth()]} ${now.getFullYear()}`.toUpperCase();
+
+const projColors = { SO: 'badge-so', MA: 'badge-ma', AD: 'badge-ad' };
+const projNames  = { SO: 'SamenOntzorgen', MA: 'Matti', AD: 'AI Doc' };
+
+// ── Panel switching ───────────────────────────────────────────────────────────
 function switchPanel(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item, .mnav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('[data-panel]').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
-  document.querySelectorAll('[data-panel="' + name + '"]').forEach(b => b.classList.add('active'));
+  document.querySelectorAll(`[data-panel="${name}"]`).forEach(b => b.classList.add('active'));
 }
-document.querySelectorAll('[data-panel]').forEach(btn => {
-  btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
-});
+document.querySelectorAll('[data-panel]').forEach(btn =>
+  btn.addEventListener('click', () => switchPanel(btn.dataset.panel))
+);
 
-// ── Logout ──────────────────────────────────────────────────────────────────
+// ── Logout ────────────────────────────────────────────────────────────────────
 document.getElementById('btnLogout').addEventListener('click', async () => {
   await fetch('/api/logout', { method: 'POST' });
   window.location.href = '/';
 });
 
-// ── Chat ────────────────────────────────────────────────────────────────────
-const chatMessages = document.getElementById('chatMessages');
-const chatInput    = document.getElementById('chatInput');
-const btnSend      = document.getElementById('btnSend');
-let chatHistory    = [];
+// ── PRIORITEITEN ─────────────────────────────────────────────────────────────
+let prios = load('wim_prios_v2', []).filter(p => p.date === vandaagStr);
+function savePrios() {
+  const rest = load('wim_prios_v2', []).filter(p => p.date !== vandaagStr);
+  save('wim_prios_v2', [...rest, ...prios]);
+}
+function renderPrios() {
+  const list = document.getElementById('prioList');
+  const tel  = document.getElementById('prioTeller');
+  tel.textContent = `${prios.filter(p=>!p.done).length} open / ${prios.length} van max 3`;
+  list.innerHTML = prios.length ? prios.map((p,i) => `
+    <div class="prio-item${p.done?' done':''}">
+      <button class="prio-toggle" data-i="${i}">${p.done?'✓':''}</button>
+      <span class="prio-tekst">${esc(p.tekst)}</span>
+      <span class="proj-badge ${projColors[p.project]}">${p.project}</span>
+      <button class="prio-del" data-i="${i}">✕</button>
+    </div>
+  `).join('') : '<div class="empty">Voeg je 3 prioriteiten toe voor vandaag.</div>';
 
-function addMsg(role, text) {
-  const isUser = role === 'user';
-  const div = document.createElement('div');
-  div.className = 'msg ' + (isUser ? 'user' : 'larry');
-  div.innerHTML = `
-    <div class="msg-icon">${isUser ? '👤' : '🤖'}</div>
-    <div class="msg-bubble">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-  `;
-  chatMessages.appendChild(div);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  list.querySelectorAll('.prio-toggle').forEach(btn =>
+    btn.addEventListener('click', () => { prios[+btn.dataset.i].done = !prios[+btn.dataset.i].done; savePrios(); renderPrios(); })
+  );
+  list.querySelectorAll('.prio-del').forEach(btn =>
+    btn.addEventListener('click', () => { prios.splice(+btn.dataset.i,1); savePrios(); renderPrios(); })
+  );
+  document.getElementById('prioAddRow').style.display = prios.length >= 3 ? 'none' : 'flex';
+}
+renderPrios();
+
+document.getElementById('btnPrioAdd').addEventListener('click', () => {
+  const tekst = document.getElementById('prioInput').value.trim();
+  if (!tekst || prios.length >= 3) return;
+  prios.push({ id: Date.now(), tekst, project: document.getElementById('prioProject').value, done: false, date: vandaagStr });
+  savePrios(); renderPrios();
+  document.getElementById('prioInput').value = '';
+});
+document.getElementById('prioInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnPrioAdd').click();
+});
+
+// ── CONTACTS ──────────────────────────────────────────────────────────────────
+let contacts = load('wim_contacts_v2', []);
+function saveContacts() { save('wim_contacts_v2', contacts); }
+
+const statusLabels = { 'te-benaderen': 'Te benaderen', benaderd: 'Benaderd', reactie: 'Reactie ontvangen', gewonnen: 'Gewonnen' };
+
+let activeFilter = 'alle';
+function renderContacts() {
+  const grid = document.getElementById('contactGrid');
+  let list = contacts;
+  if (['te-benaderen','benaderd','reactie','gewonnen'].includes(activeFilter)) {
+    list = contacts.filter(c => c.status === activeFilter);
+  } else if (activeFilter !== 'alle') {
+    list = contacts.filter(c => c.project === activeFilter);
+  }
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty">Geen contacten gevonden.</div>';
+    return;
+  }
+  grid.innerHTML = list.map(c => `
+    <div class="contact-card">
+      <div class="cc-top">
+        <div>
+          <div class="cc-name">${esc(c.naam)}</div>
+          <div class="cc-role">${esc(c.functie||'')}${c.functie&&c.org?' · ':''}${esc(c.org||'')}</div>
+        </div>
+        <span class="proj-badge ${projColors[c.project]}">${c.project}</span>
+      </div>
+      <div class="cc-status">
+        <div class="status-dot ${c.status}"></div>
+        <span class="cc-status-lbl">${statusLabels[c.status]||c.status}</span>
+      </div>
+      <div class="cc-btns">
+        <button class="cc-btn prim" data-action="draft" data-id="${c.id}">✍️ Draft bericht</button>
+        ${c.linkedin?`<button class="cc-btn" data-action="linkedin" data-url="${esc(c.linkedin)}">LinkedIn</button>`:''}
+        <button class="cc-btn" data-action="status" data-id="${c.id}" data-status="benaderd">Benaderd</button>
+        <button class="cc-btn" data-action="status" data-id="${c.id}" data-status="reactie">Reactie</button>
+        <button class="cc-btn" data-action="history" data-id="${c.id}">Geschiedenis (${(c.berichten||[]).length})</button>
+        <button class="cc-btn danger" data-action="delete" data-id="${c.id}">Verwijder</button>
+      </div>
+      <div class="cc-history" id="hist-${c.id}">
+        ${(c.berichten||[]).length
+          ? c.berichten.map(b=>`<div class="hist-item">📅 ${b.datum} — ${esc(b.preview)}</div>`).join('')
+          : '<div class="hist-item">Nog geen berichten verstuurd.</div>'}
+      </div>
+    </div>
+  `).join('');
+
+  grid.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { action, id, status, url } = btn.dataset;
+      if (action === 'draft')    openDraft(id);
+      if (action === 'linkedin') window.open(url, '_blank');
+      if (action === 'status')   { const c = contacts.find(x=>x.id==id); if(c){c.status=status;saveContacts();renderContacts();renderVandaagQueue();} }
+      if (action === 'history')  document.getElementById('hist-'+id).classList.toggle('open');
+      if (action === 'delete')   { contacts=contacts.filter(x=>x.id!=id); saveContacts(); renderContacts(); renderVandaagQueue(); }
+    });
+  });
+}
+renderContacts();
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderContacts();
+  });
+});
+
+// Add contact form
+document.getElementById('btnNieuwContact').addEventListener('click', () =>
+  document.getElementById('addContactForm').classList.toggle('open')
+);
+document.getElementById('btnContactAnnuleren').addEventListener('click', () =>
+  document.getElementById('addContactForm').classList.remove('open')
+);
+document.getElementById('btnContactOpslaan').addEventListener('click', () => {
+  const naam = document.getElementById('cNaam').value.trim();
+  if (!naam) return;
+  contacts.unshift({
+    id: Date.now(), naam,
+    org:     document.getElementById('cOrg').value.trim(),
+    functie: document.getElementById('cFunctie').value.trim(),
+    project: document.getElementById('cProject').value,
+    linkedin:document.getElementById('cLinkedin').value.trim(),
+    notitie: document.getElementById('cNotitie').value.trim(),
+    status: 'te-benaderen', berichten: []
+  });
+  saveContacts(); renderContacts(); renderVandaagQueue();
+  document.getElementById('addContactForm').classList.remove('open');
+  ['cNaam','cOrg','cFunctie','cLinkedin','cNotitie'].forEach(id => document.getElementById(id).value = '');
+});
+
+// ── VANDAAG QUEUE ─────────────────────────────────────────────────────────────
+function renderVandaagQueue() {
+  const q = document.getElementById('vandaagQueue');
+  const pending = contacts.filter(c => c.status === 'te-benaderen').slice(0, 6);
+  if (!pending.length) {
+    q.innerHTML = '<div class="empty">Geen contacten in de wachtrij. Voeg toe via Outreach.</div>';
+    return;
+  }
+  q.innerHTML = pending.map(c => `
+    <div class="q-card">
+      <div class="q-info">
+        <div class="q-name">${esc(c.naam)} <span class="proj-badge ${projColors[c.project]}">${c.project}</span></div>
+        <div class="q-org">${esc(c.functie||'')}${c.functie&&c.org?' · ':''}${esc(c.org||'')}</div>
+      </div>
+      <div class="q-btns">
+        <button class="btn-draft" data-id="${c.id}">✍️ Draft</button>
+        <button class="btn-sent-q" data-id="${c.id}">✓ Verstuurd</button>
+      </div>
+    </div>
+  `).join('');
+  q.querySelectorAll('.btn-draft').forEach(btn => btn.addEventListener('click', () => openDraft(btn.dataset.id)));
+  q.querySelectorAll('.btn-sent-q').forEach(btn => btn.addEventListener('click', () => markSent(btn.dataset.id, '')));
+}
+renderVandaagQueue();
+
+// ── SENT LOG ──────────────────────────────────────────────────────────────────
+let sentLog = load('wim_sent_v2', []).filter(s => s.datum === vandaagStr);
+function saveSentLog() {
+  const rest = load('wim_sent_v2', []).filter(s => s.datum !== vandaagStr);
+  save('wim_sent_v2', [...rest, ...sentLog]);
+}
+function renderSentList() {
+  const list = document.getElementById('sentList');
+  document.getElementById('sentTeller').textContent = sentLog.length;
+  list.innerHTML = sentLog.length ? sentLog.map(s => `
+    <div class="sent-item">
+      <div class="sent-check">✓</div>
+      <div class="sent-info">
+        <div class="sent-name">${esc(s.naam)} <span class="proj-badge ${projColors[s.project]}">${s.project}</span></div>
+        <div class="sent-preview">"${esc(s.preview)}"</div>
+      </div>
+      <div class="sent-time">${s.tijd}</div>
+    </div>
+  `).join('') : '<div class="empty">Nog niets verstuurd vandaag.</div>';
+}
+renderSentList();
+
+function markSent(id, bericht) {
+  const c = contacts.find(x => x.id == id);
+  if (!c) return;
+  const tijd = new Date().toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' });
+  const preview = bericht ? bericht.slice(0,80) : 'Verstuurd';
+  c.status = 'benaderd';
+  if (!c.berichten) c.berichten = [];
+  c.berichten.push({ datum: vandaagStr, preview });
+  saveContacts();
+  sentLog.unshift({ naam: c.naam, project: c.project, preview, tijd, datum: vandaagStr });
+  saveSentLog();
+  renderSentList(); renderVandaagQueue(); renderContacts();
+  closeDraft();
 }
 
-function addTyping() {
-  const div = document.createElement('div');
-  div.className = 'msg larry';
-  div.id = 'typingIndicator';
-  div.innerHTML = `
-    <div class="msg-icon">🤖</div>
-    <div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>
-  `;
-  chatMessages.appendChild(div);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+// ── DRAFT MODAL ───────────────────────────────────────────────────────────────
+let draftContactId = null;
+let draftText = '';
 
-function removeTyping() {
-  const t = document.getElementById('typingIndicator');
-  if (t) t.remove();
-}
+async function openDraft(id) {
+  const c = contacts.find(x => x.id == id);
+  if (!c) return;
+  draftContactId = id;
+  document.getElementById('draftTitle').textContent = `Bericht voor ${c.naam}`;
+  document.getElementById('draftSub').textContent = [c.functie, c.org, projNames[c.project]].filter(Boolean).join(' · ');
+  document.getElementById('draftBox').textContent = 'Even genereren...';
+  document.getElementById('draftModal').classList.add('open');
 
-async function sendMessage(text) {
-  if (!text.trim()) return;
-  addMsg('user', text);
-  addLog('💬', `Bericht aan Larry: "${text.slice(0, 60)}${text.length > 60 ? '...' : ''}"`);
-  chatInput.value = '';
-  chatInput.style.height = 'auto';
-  btnSend.disabled = true;
-  addTyping();
+  const prompt = `Schrijf een kort persoonlijk LinkedIn outreach bericht voor ${c.naam}${c.functie?', '+c.functie:''}${c.org?' bij '+c.org:''} voor het ${projNames[c.project]} project.${c.notitie?' Context: '+c.notitie+'.':''} Gebruik de 5fortyfive aanpak: rustig, eerlijk, menselijk, geen salesdruk. Max 4 zinnen. Begin met de voornaam van de ontvanger.`;
 
   try {
     const res = await fetch('/api/larry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: chatHistory })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: prompt, history: [] })
     });
     const data = await res.json();
-    removeTyping();
-    if (data.success) {
-      addMsg('larry', data.reply);
-      chatHistory.push({ role: 'user', content: text });
-      chatHistory.push({ role: 'assistant', content: data.reply });
-      if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
-      addLog('🤖', `Larry heeft gereageerd`);
-    } else {
-      addMsg('larry', data.message || 'Er ging iets mis.');
-    }
+    draftText = data.success ? data.reply : 'Kon geen bericht genereren. Probeer opnieuw.';
   } catch {
-    removeTyping();
-    addMsg('larry', 'Verbindingsfout. Probeer het opnieuw.');
+    draftText = 'Verbindingsfout. Controleer of de agents online zijn.';
   }
-  btnSend.disabled = false;
-  chatInput.focus();
+  document.getElementById('draftBox').textContent = draftText;
 }
 
-btnSend.addEventListener('click', () => sendMessage(chatInput.value));
-chatInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput.value); }
+function closeDraft() {
+  document.getElementById('draftModal').classList.remove('open');
+  draftContactId = null; draftText = '';
+}
+
+document.getElementById('btnDraftSluit').addEventListener('click', closeDraft);
+document.getElementById('draftModal').addEventListener('click', e => { if (e.target.id === 'draftModal') closeDraft(); });
+document.getElementById('btnDraftCopy').addEventListener('click', () => {
+  navigator.clipboard.writeText(draftText).then(() => {
+    const btn = document.getElementById('btnDraftCopy');
+    btn.textContent = 'Gekopieerd!';
+    setTimeout(() => btn.textContent = 'Kopiëren', 2000);
+  });
 });
-chatInput.addEventListener('input', () => {
-  chatInput.style.height = 'auto';
-  chatInput.style.height = Math.min(chatInput.scrollHeight, 140) + 'px';
+document.getElementById('btnDraftSent').addEventListener('click', () => {
+  if (draftContactId) markSent(draftContactId, draftText);
+});
+
+// ── MULTI-PROJECT CHAT ────────────────────────────────────────────────────────
+const histories = { so: [], ma: [], ad: [] };
+
+function addMsg(proj, role, text) {
+  const msgs = document.getElementById('chatMsgs-' + proj);
+  const icons = { so: '🤖', ma: '🧠', ad: '🩺' };
+  const avClass = { so: 'av-so', ma: 'av-ma', ad: 'av-ad' };
+  const isUser = role === 'user';
+  const div = document.createElement('div');
+  div.className = 'msg ' + (isUser ? 'user' : 'agent');
+  div.innerHTML = `
+    <div class="msg-icon ${isUser ? '' : avClass[proj]}">${isUser ? '👤' : icons[proj]}</div>
+    <div class="msg-bubble">${esc(text)}</div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addTyping(proj) {
+  const msgs = document.getElementById('chatMsgs-' + proj);
+  const div = document.createElement('div');
+  div.className = 'msg agent'; div.id = 'typing-' + proj;
+  div.innerHTML = `<div class="msg-icon"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendChat(proj) {
+  const input = document.getElementById('chatInput-' + proj);
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg(proj, 'user', text);
+  input.value = ''; input.style.height = 'auto';
+  const sendBtn = document.querySelector(`.btn-send[data-chat="${proj}"]`);
+  sendBtn.disabled = true;
+  addTyping(proj);
+
+  const history = histories[proj];
+  try {
+    const res = await fetch('/api/larry', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history })
+    });
+    const data = await res.json();
+    document.getElementById('typing-' + proj)?.remove();
+    const reply = data.success ? data.reply : (data.message || 'Er ging iets mis.');
+    addMsg(proj, 'agent', reply);
+    history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
+    if (history.length > 12) history.splice(0, 2);
+  } catch {
+    document.getElementById('typing-' + proj)?.remove();
+    addMsg(proj, 'agent', 'Verbindingsfout. Probeer het opnieuw.');
+  }
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+document.querySelectorAll('.btn-send[data-chat]').forEach(btn =>
+  btn.addEventListener('click', () => sendChat(btn.dataset.chat))
+);
+document.querySelectorAll('.chat-input').forEach(input => {
+  const proj = input.id.replace('chatInput-', '');
+  input.addEventListener('keydown', e => { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat(proj);} });
+  input.addEventListener('input', () => { input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,130)+'px'; });
 });
 document.querySelectorAll('.qp').forEach(btn => {
-  btn.addEventListener('click', () => sendMessage(btn.dataset.q));
+  btn.addEventListener('click', () => {
+    const proj = btn.dataset.chat;
+    document.getElementById('chatInput-'+proj).value = btn.dataset.q;
+    sendChat(proj);
+  });
 });
 
-// ── Taakplanner ─────────────────────────────────────────────────────────────
-let taken = JSON.parse(localStorage.getItem('so_taken') || '[]');
-
-function saveTaken() { localStorage.setItem('so_taken', JSON.stringify(taken)); }
-
+// ── TAKEN ─────────────────────────────────────────────────────────────────────
+let taken = load('wim_taken_v2', []);
+function saveTaken() { save('wim_taken_v2', taken); }
 function renderTaken() {
   const list = document.getElementById('taakList');
-  if (!taken.length) { list.innerHTML = '<div class="empty">Nog geen taken gepland.</div>'; return; }
-  list.innerHTML = taken.map((t, i) => `
+  list.innerHTML = taken.length ? taken.map((t,i) => `
     <div class="taak-card">
       <div class="taak-info">
-        <div class="taak-agent">${t.agent}</div>
-        <div class="taak-opdracht">${t.opdracht}</div>
-        <div class="taak-meta">${t.herhaling}${t.dag ? ' · ' + t.dag : ''}${t.tijd ? ' · ' + t.tijd : ''}</div>
+        <div class="taak-agent">${esc(t.agent)} <span class="proj-badge ${projColors[t.project]}" style="margin-left:4px">${t.project}</span></div>
+        <div class="taak-opdracht">${esc(t.opdracht)}</div>
+        <div class="taak-meta">${t.herhaling}${t.dag?' · '+t.dag:''}${t.tijd?' · '+t.tijd:''}</div>
       </div>
       <button class="btn-del" data-i="${i}">✕</button>
     </div>
-  `).join('');
-  list.querySelectorAll('.btn-del').forEach(btn => {
-    btn.addEventListener('click', () => { taken.splice(+btn.dataset.i, 1); saveTaken(); renderTaken(); });
-  });
+  `).join('') : '<div class="empty">Nog geen taken gepland.</div>';
+  list.querySelectorAll('.btn-del').forEach(btn =>
+    btn.addEventListener('click', () => { taken.splice(+btn.dataset.i,1); saveTaken(); renderTaken(); })
+  );
 }
 renderTaken();
 
 document.getElementById('btnTaakOpslaan').addEventListener('click', () => {
   const opdracht = document.getElementById('taakOpdracht').value.trim();
   if (!opdracht) return;
-  const taak = {
+  taken.unshift({
     opdracht,
     herhaling: document.getElementById('taakHerhaling').value,
     dag:       document.getElementById('taakDag').value,
     tijd:      document.getElementById('taakTijd').value,
-    agent:     document.getElementById('taakAgent').value
-  };
-  taken.unshift(taak);
-  saveTaken();
-  renderTaken();
+    agent:     document.getElementById('taakAgent').value,
+    project:   document.getElementById('taakProj').value
+  });
+  saveTaken(); renderTaken();
   document.getElementById('taakOpdracht').value = '';
-  addLog('📋', `Taak gepland voor ${taak.agent}: "${opdracht.slice(0, 50)}..."`);
-});
-
-// ── Activiteitenlog ─────────────────────────────────────────────────────────
-let logs = JSON.parse(sessionStorage.getItem('so_log') || '[]');
-
-function saveLogs() { sessionStorage.setItem('so_log', JSON.stringify(logs)); }
-
-function renderLog() {
-  const list = document.getElementById('logList');
-  if (!logs.length) { list.innerHTML = '<div class="empty">Nog geen activiteit geregistreerd.</div>'; return; }
-  list.innerHTML = logs.map(l => `
-    <div class="log-item">
-      <div class="log-icon">${l.icon}</div>
-      <div class="log-body">
-        <div class="log-tekst">${l.tekst}</div>
-        <div class="log-time">${l.time}</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function addLog(icon, tekst) {
-  const now = new Date().toLocaleString('nl-NL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-  logs.unshift({ icon, tekst, time: now });
-  if (logs.length > 50) logs.pop();
-  saveLogs();
-  renderLog();
-}
-
-renderLog();
-
-document.getElementById('btnLogLeeg').addEventListener('click', () => {
-  logs = []; saveLogs(); renderLog();
 });
 </script>
 </body>
