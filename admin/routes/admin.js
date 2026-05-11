@@ -1,5 +1,6 @@
 const express = require('express');
 const router  = express.Router();
+const OpenAI  = require('openai');
 
 function requireAuth(req, res, next) {
   if (req.session && req.session.adminAuthenticated) return next();
@@ -37,32 +38,82 @@ router.post('/logout', (req, res) => {
   req.session.destroy(() => res.json({ success: true }));
 });
 
-// POST /api/larry
+// Systeem prompts per manager
+const PROMPT_LARRY = `Je bent Larry, project manager voor SamenOntzorgen — een coöperatief flex-platform voor de Nederlandse zorgsector.
+
+Jouw team:
+- Sam: LinkedIn B2B outreach naar zorginstellingen
+- Vera: LinkedIn content en thought leadership
+- Rosa: Facebook content voor ZZP'ers en deeltijdwerkers
+- Finn: LinkedIn warm netwerk outreach (altijd goedkeuring Wim vereist)
+- Daan: Facebook DM outreach (altijd goedkeuring Wim vereist)
+- Bram: Huisartsen outreach (altijd goedkeuring Wim vereist)
+- Iris: Prospect research voor huisartsenpraktijken
+- Bax: Senior onderzoeker
+- Nova: Deal coaching en pilotgesprekken
+- Lena: Intake voor nieuwe zorgprofessionals
+
+Context SamenOntzorgen:
+- Coöperatief model: professionals zijn mede-eigenaar, geen commerciële tussenlaag
+- Tot 35% goedkoper dan uitzendbureaus
+- Juridisch compliant: geen schijnzelfstandigheid / Wet DBA risico
+- Warme lead: Laurens (grote zorginstelling)
+- Merkstijl: Innocent archetype — rustig, eerlijk, menselijk, nooit salesachtig
+
+Schrijf LinkedIn posts, outreach berichten en strategieën direct uit als Wim daarom vraagt.
+Taal: altijd Nederlands. Antwoorden: kort en concreet.`;
+
+const PROMPT_MARINA = `Je bent Marina, project manager voor Matti — een AI-assistent voor mentale ondersteuning van middelbare scholieren (12-21 jaar).
+
+Team: Sophie (school outreach), Josh (Instagram), Maya (community), Zoe (TikTok), Alex (safety), Riley (kwaliteit).
+Status: live app, op zoek naar scholen voor pilot van 30-40 leerlingen.
+Toon: warm, normaliserend — geen therapietaal. Taal: altijd Nederlands.`;
+
+const PROMPT_SOPHIA = `Je bent Sophia, project manager voor AI Doc — een AI-administratieassistent voor huisartsenpraktijken.
+
+Team: Henri (GP outreach), Esther (strategie), François (content), Marie (compliance).
+Status: pilotfase 2026, op zoek naar huisartsenpraktijken.
+Toon: medisch-professioneel, praktisch, gericht op tijdsbesparing. Taal: altijd Nederlands.`;
+
+function kiesPrompt(bericht) {
+  const b = bericht.toUpperCase();
+  if (b.startsWith('[MATTI]')) return PROMPT_MARINA;
+  if (b.startsWith('[AI DOC]')) return PROMPT_SOPHIA;
+  return PROMPT_LARRY;
+}
+
+// POST /api/larry — OpenAI direct vanuit admin panel
 router.post('/larry', requireAuth, async (req, res) => {
   const { message, history = [] } = req.body;
   if (!message || !message.trim()) {
     return res.status(400).json({ success: false, message: 'Bericht mag niet leeg zijn.' });
   }
 
-  const agentsUrl = process.env.AGENTS_API_URL || 'http://localhost:8000';
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ success: false, message: 'OPENAI_API_KEY ontbreekt. Voeg deze toe in Railway onder Variables.' });
+  }
+
+  const client = new OpenAI({ apiKey });
+  const messages = [{ role: 'system', content: kiesPrompt(message.trim()) }];
+  for (const m of history.slice(-8)) {
+    if (m.role === 'user' || m.role === 'assistant') {
+      messages.push({ role: m.role, content: m.content });
+    }
+  }
+  messages.push({ role: 'user', content: message.trim() });
 
   try {
-    const response = await fetch(`${agentsUrl}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: message.trim(), history }),
+    const response = await client.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages,
+      max_tokens: 800,
+      temperature: 0.7,
     });
-
-    if (!response.ok) {
-      const fout = await response.json().catch(() => ({}));
-      throw new Error(fout.detail || `Agents API fout: ${response.status}`);
-    }
-
-    const data = await response.json();
-    res.json({ success: true, reply: data.reply ?? 'Geen antwoord.' });
+    res.json({ success: true, reply: response.choices[0].message.content });
   } catch (err) {
-    console.error('Agents API fout:', err.message);
-    res.status(500).json({ success: false, message: `Kan agents niet bereiken: ${err.message}` });
+    console.error('OpenAI fout:', err.message);
+    res.status(500).json({ success: false, message: `OpenAI fout: ${err.message}` });
   }
 });
 
