@@ -1,6 +1,4 @@
-claude-agent-sdk
+openai
 python-dotenv
-anyio
 fastapi
 uvicorn[standard]
-aiofiles
