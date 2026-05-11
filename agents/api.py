@@ -35,6 +35,9 @@ class ChatRequest(BaseModel):
     history: list = []
 
 
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "Eisenhower API actief", "docs": "/docs"}
 class LeadAanmaken(BaseModel):
     organisatie: str
     sector: str = ""
