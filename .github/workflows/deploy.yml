@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  deploy:
+  deploy-admin:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -15,7 +15,23 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy to Railway
-        run: railway up --detach
+      - name: Deploy admin service
+        working-directory: admin
+        run: railway up --detach --service admin
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  deploy-agents:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy agents service
+        working-directory: agents
+        run: railway up --detach --service agents
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
