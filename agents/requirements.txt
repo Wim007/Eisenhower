@@ -3,3 +3,4 @@ python-dotenv
 anyio
 fastapi
 uvicorn[standard]
+pydantic
