@@ -10,14 +10,20 @@ import os
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
 from main import vraag_eisenhower
 import crm
+import tasks as task_db
 
 load_dotenv()
 crm.init_db()
+task_db.init_db()
+
+_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = FastAPI(title="SamenOntzorgen Agents API")
 
@@ -224,3 +230,73 @@ async def genereer_bericht(lead_id: int, body: BerichtRequest):
         crm.update_status(lead_id, "benaderd")
 
     return {"bericht": bericht, "type": body.type}
+
+
+# ── Eisenhower taken ─────────────────────────────────────────────────────────
+
+class TaskCreate(BaseModel):
+    title: str
+    quadrant: int  # 1–4
+
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    quadrant: Optional[int] = None
+    completed: Optional[bool] = None
+
+
+@app.get("/tasks/stats")
+async def get_task_stats():
+    return task_db.stats()
+
+
+@app.get("/tasks")
+async def list_tasks(quadrant: Optional[int] = Query(default=None, ge=1, le=4)):
+    return task_db.get_all(quadrant=quadrant)
+
+
+@app.post("/tasks", status_code=201)
+async def create_task(body: TaskCreate):
+    if not 1 <= body.quadrant <= 4:
+        raise HTTPException(status_code=400, detail="Kwadrant moet 1–4 zijn.")
+    return task_db.create(body.title.strip(), body.quadrant)
+
+
+@app.get("/tasks/{task_id}")
+async def get_task(task_id: int):
+    t = task_db.get_one(task_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="Taak niet gevonden.")
+    return t
+
+
+@app.put("/tasks/{task_id}")
+async def update_task(task_id: int, body: TaskUpdate):
+    data = body.model_dump(exclude_none=True)
+    if "completed" in data:
+        data["completed"] = int(data["completed"])
+    t = task_db.update(task_id, **data)
+    if not t:
+        raise HTTPException(status_code=404, detail="Taak niet gevonden.")
+    return t
+
+
+@app.delete("/tasks/{task_id}", status_code=204)
+async def delete_task(task_id: int):
+    if not task_db.delete(task_id):
+        raise HTTPException(status_code=404, detail="Taak niet gevonden.")
+
+
+# ── Frontend ─────────────────────────────────────────────────────────────────
+
+_static = os.path.join(_DIR, "static")
+if os.path.isdir(_static):
+    app.mount("/static", StaticFiles(directory=_static), name="static")
+
+
+@app.get("/", include_in_schema=False)
+async def index():
+    html = os.path.join(_DIR, "static", "index.html")
+    if not os.path.isfile(html):
+        return {"status": "ok", "message": "Eisenhower API draait."}
+    return FileResponse(html)
